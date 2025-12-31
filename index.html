@@ -1,0 +1,93 @@
+
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KisanPortal | Precision Agriculture Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Noto+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --primary: #166534;
+      }
+      body {
+        font-family: 'Inter', 'Noto Sans', sans-serif;
+        background-color: #f8fafc;
+      }
+      .font-serif {
+        font-family: 'Playfair Display', serif;
+      }
+      .fade-in {
+        opacity: 0;
+        transform: translateY(40px);
+        transition: opacity 1.2s cubic-bezier(0.21, 0.45, 0.32, 1.05), transform 1.2s cubic-bezier(0.21, 0.45, 0.32, 1.05);
+      }
+      .fade-in.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      @keyframes slowZoom {
+        from { transform: scale(1); }
+        to { transform: scale(1.15); }
+      }
+      @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(40px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      @keyframes fadeInLeft {
+        from { opacity: 0; transform: translateX(-40px); }
+        to { opacity: 1; transform: translateX(0); }
+      }
+      @keyframes bounceIn {
+        0% { opacity: 0; transform: scale(0.3); }
+        50% { opacity: 1; transform: scale(1.05); }
+        70% { transform: scale(0.9); }
+        100% { transform: scale(1); }
+      }
+      @keyframes pulse-ring {
+        0% { transform: scale(.33); }
+        80%, 100% { opacity: 0; }
+      }
+      .pulse-btn::before {
+        content: '';
+        position: absolute;
+        display: block;
+        width: 300%;
+        height: 300%;
+        box-sizing: border-box;
+        margin-left: -100%;
+        margin-top: -100%;
+        border-radius: 50%;
+        background-color: #22c55e;
+        animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+      }
+      .chatbot-window {
+        transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        transform-origin: bottom right;
+      }
+      main section {
+        width: 100%;
+      }
+      /* Hide Recaptcha badge if desired, though required by TOS */
+      .grecaptcha-badge { visibility: hidden; }
+    </style>
+    <script type="importmap">
+{
+  "imports": {
+    "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react": "https://esm.sh/react@^19.2.3",
+    "firebase/app": "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js",
+    "firebase/auth": "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js",
+    "firebase/": "https://esm.sh/firebase@^12.7.0/"
+  }
+}
+</script>
+  </head>
+  <body class="text-slate-900 overflow-x-hidden">
+    <div id="root"></div>
+    <div id="recaptcha-container"></div>
+  </body>
+</html>
