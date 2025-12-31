@@ -14,6 +14,12 @@ import {
   onAuthStateChanged,
   signOut
 } from 'firebase/auth';
+import { 
+  getFirestore, 
+  doc, 
+  setDoc, 
+  getDoc 
+} from 'firebase/firestore';
 
 // --- Firebase Config ---
 const firebaseConfig = {
@@ -27,29 +33,41 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app);
 
-// --- Location Data ---
+// --- Extended Location Data ---
 const locationData: any = {
   "Andhra Pradesh": {
     districts: {
-      "Guntur": ["Mandal A1", "Mandal A2", "Other"],
-      "Krishna": ["Mandal B1", "Mandal B2", "Other"],
-      "Visakhapatnam": ["Mandal C1", "Mandal C2", "Other"],
+      "Guntur": ["Guntur Mandal 1", "Guntur Mandal 2", "Other"],
+      "Krishna": ["Vijayawada", "Machilipatnam", "Other"],
+      "Visakhapatnam": ["Visakhapatnam Urban", "Visakhapatnam Rural", "Other"],
+      "Anantapur": ["Anantapur", "Dharmavaram", "Other"],
       "Other": ["Other"]
     }
   },
   "Telangana": {
     districts: {
-      "Hyderabad": ["Mandal D1", "Mandal D2", "Other"],
-      "Warangal": ["Mandal E1", "Mandal E2", "Other"],
-      "Khammam": ["Mandal F1", "Mandal F2", "Other"],
+      "Hyderabad": ["Ameerpet", "Madhapur", "Kukatpally", "Other"],
+      "Warangal": ["Warangal Urban", "Warangal Rural", "Other"],
+      "Khammam": ["Khammam", "Wyra", "Other"],
+      "Nizamabad": ["Nizamabad", "Armur", "Other"],
       "Other": ["Other"]
     }
   },
   "Karnataka": {
     districts: {
-      "Bangalore": ["Mandal G1", "Other"],
-      "Mysore": ["Mandal H1", "Other"],
+      "Bangalore": ["Bangalore North", "Bangalore South", "Other"],
+      "Mysore": ["Mysore", "Hunsur", "Other"],
+      "Belagavi": ["Belagavi", "Gokak", "Other"],
+      "Other": ["Other"]
+    }
+  },
+  "Tamil Nadu": {
+    districts: {
+      "Chennai": ["Chennai Central", "Chennai North", "Other"],
+      "Coimbatore": ["Coimbatore North", "Coimbatore South", "Other"],
+      "Madurai": ["Madurai North", "Other"],
       "Other": ["Other"]
     }
   },
@@ -60,7 +78,7 @@ const locationData: any = {
   }
 };
 
-const cropOptions = ["Paddy", "Wheat", "Cotton", "Chilli", "Turmeric", "Maize", "Groundnut", "Other"];
+const cropOptions = ["Paddy", "Wheat", "Cotton", "Chilli", "Turmeric", "Maize", "Groundnut", "Tomato", "Onion", "Sugarcane", "Other"];
 
 // --- Translations ---
 const translations = {
@@ -100,7 +118,8 @@ const translations = {
       back: 'Go Back',
       switchLogin: 'Already have an account? Log In',
       switchRegister: 'Need an account? Register',
-      error: 'Something went wrong. Please try again.'
+      error: 'Something went wrong. Please try again.',
+      userNotFound: 'Account not found. Please Register instead.'
     },
     chat: { 
       name: 'Kisan AI Assistant', 
@@ -112,8 +131,13 @@ const translations = {
     },
     toast: { welcome: 'Namaste', status: 'AI Assistant Online' }
   },
-  // Simplified other translations for brevity in this block, would ideally mirror English structure
-  hi: { nav: { home: 'मुख्य', cropDetails: 'फसल', weather: 'मौसम', dashboard: 'डैशबोर्ड', suggestions: 'सुझाव', login: 'लॉगिन', register: 'पंजीकरण', logout: 'लॉगआउट' }, auth: { titleLogin: 'वापसी पर स्वागत है', titleRegister: 'नया पंजीकरण', switchLogin: 'पहले से खाता है? लॉगिन करें', switchRegister: 'खाता नहीं है? पंजीकरण करें', phone: 'फ़ोन नंबर', sendOtp: 'कोड भेजें', otp: 'कोड दर्ज करें', verify: 'ओटीपी सत्यापित करें', profile: 'प्रोफ़ाइल पूरी करें', name: 'पूरा नाम', state: 'राज्य', district: 'जिला', mandal: 'मंडल', crop: 'फसल', submit: 'सहेजें और प्रवेश करें', error: 'त्रुटि हुई।' }, hero: { badge: 'भारतीय कृषि', title: 'भविष्य की खेती', desc: 'किसानपोर्टल आधुनिक उत्पादकों के लिए है।' }, chat: { welcome: 'नमस्ते!' }, toast: { welcome: 'नमस्ते' } },
+  hi: {
+    nav: { home: 'मुख्य', cropDetails: 'फसल', weather: 'मौसम', dashboard: 'डैशबोर्ड', suggestions: 'सुझाव', login: 'लॉगिन', register: 'पंजीकरण', logout: 'लॉगआउट' },
+    auth: { titleLogin: 'वापसी पर स्वागत है', titleRegister: 'नया पंजीकरण', subtitle: 'किसापोर्टल तक सुरक्षित पहुंच', switchLogin: 'पहले से खाता है? लॉगिन करें', switchRegister: 'खाता नहीं है? पंजीकरण करें', phone: 'फ़ोन नंबर', phonePlaceholder: '98765 43210', sendOtp: 'कोड भेजें', otp: 'कोड दर्ज करें', verify: 'ओटीपी सत्यापित करें', profile: 'प्रोफ़ाइल पूरी करें', name: 'पूरा नाम', state: 'राज्य', district: 'जिला', mandal: 'मंडल', crop: 'फसल', otherCrop: 'फसल का नाम लिखें', otherLocation: 'स्थान निर्दिष्ट करें', submit: 'सहेजें और प्रवेश करें', back: 'वापस जाएं', error: 'त्रुटि हुई।', userNotFound: 'खाता नहीं मिला। कृपया पंजीकरण करें।' },
+    hero: { badge: 'भारतीय कृषि का सशक्तिकरण', title: 'आज ही भविष्य की खेती करें', desc: 'किसानपोर्टल आधुनिक उत्पादकों के लिए एक निश्चित पारिस्थितिकी तंत्र है।' },
+    chat: { name: 'किसान एआई सहायक', status: 'ऑनलाइन', welcome: 'नमस्ते! किसानपोर्टल पर वापस स्वागत है।', actions: { weather: 'मौसम', soil: 'मिट्टी', market: 'बाजार', seed: 'बीज' } },
+    toast: { welcome: 'नमस्ते', status: 'सहायक ऑनलाइन' }
+  }
 };
 
 const languages = [
@@ -121,18 +145,17 @@ const languages = [
   { code: 'hi', name: 'हिंदी' },
 ];
 
-// --- Sub-components ---
+// --- Authentication Modal ---
 
 const AuthModal = ({ isOpen, onClose, lang, t, onAuthSuccess, initialMode = 'login' }: any) => {
-  const [mode, setMode] = useState(initialMode); // 'login' or 'register'
-  const [step, setStep] = useState('phone'); // 'phone', 'otp', 'profile'
+  const [mode, setMode] = useState(initialMode); 
+  const [step, setStep] = useState('phone'); 
   const [phoneNumber, setPhoneNumber] = useState('');
   const [otp, setOtp] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [confirmationResult, setConfirmationResult] = useState<any>(null);
   
-  // Profile state
   const [profile, setProfile] = useState({ 
     name: '', 
     state: '', 
@@ -154,6 +177,13 @@ const AuthModal = ({ isOpen, onClose, lang, t, onAuthSuccess, initialMode = 'log
       });
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    setMode(initialMode);
+    setStep('phone');
+    setError('');
+    setLoading(false);
+  }, [isOpen, initialMode]);
 
   const handleSendOtp = async () => {
     setLoading(true);
@@ -177,13 +207,21 @@ const AuthModal = ({ isOpen, onClose, lang, t, onAuthSuccess, initialMode = 'log
     setLoading(true);
     setError('');
     try {
-      await confirmationResult.confirm(otp);
-      if (mode === 'register') {
-        setStep('profile');
-      } else {
-        // Assume user exists for demo and log them in
-        onAuthSuccess({ name: 'Farmer' }); 
+      const result = await confirmationResult.confirm(otp);
+      const uid = result.user.uid;
+      
+      const userDoc = await getDoc(doc(db, 'users', uid));
+      
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        onAuthSuccess(userData);
         onClose();
+      } else {
+        if (mode === 'login') {
+          setError(t.auth.userNotFound);
+        } else {
+          setStep('profile');
+        }
       }
     } catch (err) {
       setError(t.auth.error);
@@ -191,17 +229,30 @@ const AuthModal = ({ isOpen, onClose, lang, t, onAuthSuccess, initialMode = 'log
     setLoading(false);
   };
 
-  const handleProfileSubmit = (e: React.FormEvent) => {
+  const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const finalProfile = {
-      ...profile,
-      state: profile.state === 'Other' ? profile.otherState : profile.state,
-      district: profile.district === 'Other' ? profile.otherDistrict : profile.district,
-      mandal: profile.mandal === 'Other' ? profile.otherMandal : profile.mandal,
-      crop: profile.crop === 'Other' ? profile.otherCrop : profile.crop
-    };
-    onAuthSuccess(finalProfile);
-    onClose();
+    setLoading(true);
+    try {
+      const uid = auth.currentUser?.uid;
+      if (!uid) throw new Error("No user authenticated");
+
+      const finalProfile = {
+        name: profile.name,
+        state: profile.state === 'Other' ? profile.otherState : profile.state,
+        district: profile.district === 'Other' ? profile.otherDistrict : profile.district,
+        mandal: profile.mandal === 'Other' ? profile.otherMandal : profile.mandal,
+        crop: profile.crop === 'Other' ? profile.otherCrop : profile.crop,
+        phoneNumber: phoneNumber.startsWith('+') ? phoneNumber : `+91${phoneNumber}`,
+        registeredAt: new Date().toISOString()
+      };
+
+      await setDoc(doc(db, 'users', uid), finalProfile);
+      onAuthSuccess(finalProfile);
+      onClose();
+    } catch (err) {
+      setError(t.auth.error);
+    }
+    setLoading(false);
   };
 
   if (!isOpen) return null;
@@ -209,7 +260,7 @@ const AuthModal = ({ isOpen, onClose, lang, t, onAuthSuccess, initialMode = 'log
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
       <div className="bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
-        <div className="p-8 bg-green-50 border-b border-green-100 flex justify-between items-center">
+        <div className="p-8 bg-green-50 border-b border-green-100 flex justify-between items-center shrink-0">
           <div>
             <h2 className="text-2xl font-black text-green-900">{mode === 'login' ? t.auth.titleLogin : t.auth.titleRegister}</h2>
             <p className="text-sm text-green-700/70">{t.auth.subtitle}</p>
@@ -303,7 +354,7 @@ const AuthModal = ({ isOpen, onClose, lang, t, onAuthSuccess, initialMode = 'log
                   required 
                   value={profile.state} 
                   onChange={(e) => setProfile({...profile, state: e.target.value, district: '', mandal: ''})}
-                  className="w-full bg-slate-50 rounded-xl py-3 px-4 border border-slate-200 focus:ring-2 focus:ring-green-500/20 outline-none text-sm font-bold appearance-none"
+                  className="w-full bg-slate-50 rounded-xl py-3 px-4 border border-slate-200 focus:ring-2 focus:ring-green-500/20 outline-none text-sm font-bold appearance-none cursor-pointer"
                 >
                   <option value="">Select State</option>
                   {Object.keys(locationData).map(s => <option key={s} value={s}>{s}</option>)}
@@ -312,7 +363,7 @@ const AuthModal = ({ isOpen, onClose, lang, t, onAuthSuccess, initialMode = 'log
 
               {profile.state === 'Other' && (
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black uppercase text-slate-400 ml-2">{t.auth.otherLocation}</label>
+                  <label className="text-[10px] font-black uppercase text-slate-400 ml-2">{t.auth.otherLocation} (State)</label>
                   <input required type="text" value={profile.otherState} onChange={(e) => setProfile({...profile, otherState: e.target.value})} className="w-full bg-slate-50 rounded-xl py-3 px-4 border border-slate-200 focus:ring-2 focus:ring-green-500/20 outline-none text-sm font-bold" />
                 </div>
               )}
@@ -324,11 +375,18 @@ const AuthModal = ({ isOpen, onClose, lang, t, onAuthSuccess, initialMode = 'log
                     required 
                     value={profile.district} 
                     onChange={(e) => setProfile({...profile, district: e.target.value, mandal: ''})}
-                    className="w-full bg-slate-50 rounded-xl py-3 px-4 border border-slate-200 focus:ring-2 focus:ring-green-500/20 outline-none text-sm font-bold appearance-none"
+                    className="w-full bg-slate-50 rounded-xl py-3 px-4 border border-slate-200 focus:ring-2 focus:ring-green-500/20 outline-none text-sm font-bold appearance-none cursor-pointer"
                   >
                     <option value="">Select District</option>
                     {Object.keys(locationData[profile.state].districts).map(d => <option key={d} value={d}>{d}</option>)}
                   </select>
+                </div>
+              )}
+
+              {profile.district === 'Other' && (
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black uppercase text-slate-400 ml-2">{t.auth.otherLocation} (District)</label>
+                  <input required type="text" value={profile.otherDistrict} onChange={(e) => setProfile({...profile, otherDistrict: e.target.value})} className="w-full bg-slate-50 rounded-xl py-3 px-4 border border-slate-200 focus:ring-2 focus:ring-green-500/20 outline-none text-sm font-bold" />
                 </div>
               )}
 
@@ -339,7 +397,7 @@ const AuthModal = ({ isOpen, onClose, lang, t, onAuthSuccess, initialMode = 'log
                     required 
                     value={profile.mandal} 
                     onChange={(e) => setProfile({...profile, mandal: e.target.value})}
-                    className="w-full bg-slate-50 rounded-xl py-3 px-4 border border-slate-200 focus:ring-2 focus:ring-green-500/20 outline-none text-sm font-bold appearance-none"
+                    className="w-full bg-slate-50 rounded-xl py-3 px-4 border border-slate-200 focus:ring-2 focus:ring-green-500/20 outline-none text-sm font-bold appearance-none cursor-pointer"
                   >
                     <option value="">Select Mandal</option>
                     {locationData[profile.state].districts[profile.district].map((m: string) => <option key={m} value={m}>{m}</option>)}
@@ -348,7 +406,7 @@ const AuthModal = ({ isOpen, onClose, lang, t, onAuthSuccess, initialMode = 'log
               )}
 
               {profile.mandal === 'Other' && (
-                <div className="space-y-1 md:col-span-2">
+                <div className="md:col-span-2 space-y-1">
                   <label className="text-[10px] font-black uppercase text-slate-400 ml-2">{t.auth.otherLocation} (Mandal)</label>
                   <input required type="text" value={profile.otherMandal} onChange={(e) => setProfile({...profile, otherMandal: e.target.value})} className="w-full bg-slate-50 rounded-xl py-3 px-4 border border-slate-200 focus:ring-2 focus:ring-green-500/20 outline-none text-sm font-bold" />
                 </div>
@@ -360,7 +418,7 @@ const AuthModal = ({ isOpen, onClose, lang, t, onAuthSuccess, initialMode = 'log
                   required 
                   value={profile.crop} 
                   onChange={(e) => setProfile({...profile, crop: e.target.value})}
-                  className="w-full bg-slate-50 rounded-xl py-3 px-4 border border-slate-200 focus:ring-2 focus:ring-green-500/20 outline-none text-sm font-bold appearance-none"
+                  className="w-full bg-slate-50 rounded-xl py-3 px-4 border border-slate-200 focus:ring-2 focus:ring-green-500/20 outline-none text-sm font-bold appearance-none cursor-pointer"
                 >
                   <option value="">Select Primary Crop</option>
                   {cropOptions.map(c => <option key={c} value={c}>{c}</option>)}
@@ -374,8 +432,12 @@ const AuthModal = ({ isOpen, onClose, lang, t, onAuthSuccess, initialMode = 'log
                 </div>
               )}
 
-              <button type="submit" className="md:col-span-2 bg-green-600 hover:bg-green-700 text-white py-4 rounded-2xl font-black text-lg mt-4 shadow-xl shadow-green-200">
-                {t.auth.submit}
+              <button 
+                type="submit" 
+                disabled={loading}
+                className="md:col-span-2 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white py-4 rounded-2xl font-black text-lg mt-4 shadow-xl shadow-green-200 transition-all"
+              >
+                {loading ? 'Saving Profile...' : t.auth.submit}
               </button>
             </form>
           )}
@@ -399,14 +461,14 @@ const useScrollReveal = () => {
   }, []);
 };
 
-// --- Main App Components ---
+// --- Main Components ---
 
 const Chatbot = ({ isOpen, toggleChat, isLoggedIn, t }: any) => {
   if (!isLoggedIn) return null;
   return (
     <div className="fixed bottom-6 right-6 z-[60] flex flex-col items-end">
       <div className={`chatbot-window mb-4 w-[400px] max-w-[calc(100vw-2rem)] bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col ${isOpen ? 'scale-100 opacity-100 translate-y-0' : 'scale-0 opacity-0 translate-y-10 pointer-events-none'}`}>
-        <div className="bg-green-700 p-5 text-white flex justify-between items-center shadow-lg">
+        <div className="bg-green-700 p-5 text-white flex justify-between items-center shadow-lg shrink-0">
           <div className="flex items-center gap-3">
             <div className="bg-white/20 p-2 rounded-xl"><Sprout className="w-6 h-6" /></div>
             <div>
@@ -432,7 +494,7 @@ const Chatbot = ({ isOpen, toggleChat, isLoggedIn, t }: any) => {
             </div>
           </div>
         </div>
-        <div className="p-5 bg-white border-t border-slate-100 flex gap-3 items-center">
+        <div className="p-5 bg-white border-t border-slate-100 flex gap-3 items-center shrink-0">
           <input type="text" placeholder={t.chat.placeholder} className="flex-1 text-sm bg-slate-100 border-none rounded-2xl px-5 py-3 focus:ring-2 focus:ring-green-500/20 focus:bg-white transition-all outline-none" />
           <button className="bg-green-600 text-white p-3 rounded-2xl hover:bg-green-700 transition-all shadow-lg hover:shadow-green-200"><Send className="w-5 h-5" /></button>
         </div>
@@ -537,6 +599,8 @@ const Navbar = ({ isLoggedIn, userProfile, onOpenAuth, onLogout, lang, setLang, 
   );
 };
 
+// --- Landing Sections ---
+
 const SectionHero = ({ t }: any) => (
   <section id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden pt-24 md:pt-32">
     <div className="absolute inset-0 z-0 scale-105 animate-[slowZoom_20s_infinite_alternate]">
@@ -638,7 +702,7 @@ const SectionFeatures = ({ t }: any) => (
 );
 
 const Footer = ({ t }: any) => (
-  <footer className="bg-slate-950 pt-24 md:pt-32 pb-12 text-slate-400 text-center">
+  <footer className="bg-slate-950 pt-24 md:pt-32 pb-12 text-slate-400 text-center shrink-0">
     <div className="max-w-[1600px] mx-auto px-6 md:px-12">
       <div className="flex flex-col items-center gap-6 mb-12">
         <div className="bg-green-600 p-2 rounded-2xl"><Sprout className="text-white w-6 h-6 md:w-8 md:h-8" /></div>
@@ -665,8 +729,17 @@ const App: React.FC = () => {
   const t = (translations as any)[lang] || translations.en;
 
   useEffect(() => {
-    onAuthStateChanged(auth, (user) => {
-      if (!user) {
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        if (userDoc.exists()) {
+          setUserProfile(userDoc.data());
+          setIsLoggedIn(true);
+        } else {
+          // Trigger registration profile setup if user exists in Auth but not in Firestore
+          setAuthModal({ isOpen: true, mode: 'register' });
+        }
+      } else {
         setIsLoggedIn(false);
         setUserProfile(null);
       }
@@ -687,7 +760,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen relative overflow-x-hidden selection:bg-green-100 selection:text-green-900">
+    <div className="min-h-screen relative overflow-x-hidden flex flex-col selection:bg-green-100 selection:text-green-900">
       <Navbar 
         isLoggedIn={isLoggedIn} 
         userProfile={userProfile}
@@ -698,7 +771,7 @@ const App: React.FC = () => {
         t={t}
       />
       
-      <main className="w-full">
+      <main className="w-full flex-1">
         <SectionHero t={t} />
         <SectionImportance t={t} />
         <SectionTech t={t} />
