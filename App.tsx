@@ -4,7 +4,7 @@ import {
   Leaf, Sprout, CloudSun, TrendingUp, ShieldCheck, Users, MapPin, 
   Phone, Mail, ChevronRight, Menu, X, Tractor, Droplets, Microscope, 
   LogIn, LogOut, MessageCircle, Send, User, Globe, CheckCircle2, 
-  MapIcon, Wheat, Building2, LayoutDashboard, Search, UserPlus
+  Wheat, Building2, LayoutDashboard, Search, UserPlus
 } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
 import { 
@@ -92,14 +92,14 @@ const translations = {
       titleLogin: 'Sign In', titleRegister: 'Create Account', subtitle: 'Secure access to KisanPortal', phone: 'Phone Number', phonePlaceholder: '98765 43210', sendOtp: 'Get OTP', otp: 'Enter 6-digit OTP', verify: 'Verify & Proceed',
       profile: 'Farmer Profile Information', name: 'Your Full Name', state: 'State', district: 'District', mandal: 'Mandal', crop: 'Primary Crop', otherCrop: 'Specify Crop', otherLocation: 'Specify Location',
       submit: 'Complete Registration', back: 'Go Back', switchLogin: 'Already a member? Login', switchRegister: 'New to KisanPortal? Register',
-      error: 'Authentication failed. Please try again.', userNotFound: 'No profile found for this number. Please Register.', userExists: 'Account already exists. Please Login.'
+      error: 'Authentication failed. Please try again.', userNotFound: 'No profile found for this number. Please Register.', userExists: 'Account already exists for this number. Please Login.'
     },
     chat: { name: 'Kisan AI Assistant', status: 'Online • 24/7 Support', welcome: 'Namaste! Welcome back to KisanPortal. How can I help you optimize your harvest today? 🌾', placeholder: 'Type your message...', quickActions: 'Quick Actions', actions: { weather: 'Weather', soil: 'Soil', market: 'Market', seed: 'Seeds' } },
     toast: { welcome: 'Welcome back', status: 'Identity Verified' }
   },
   hi: {
     nav: { home: 'मुख्य', cropDetails: 'फसल', weather: 'मौसम', dashboard: 'डैशबोर्ड', suggestions: 'सुझाव', login: 'लॉगिन', register: 'पंजीकरण', logout: 'लॉगआउट' },
-    auth: { titleLogin: 'लॉगिन करें', titleRegister: 'खाता बनाएं', subtitle: 'किसापोर्टल तक सुरक्षित पहुंच', phone: 'फ़ोन नंबर', phonePlaceholder: '98765 43210', sendOtp: 'ओटीपी प्राप्त करें', otp: '६-अंकों का ओटीपी दर्ज करें', verify: 'सत्यापित करें', profile: 'किसान प्रोफ़ाइल जानकारी', name: 'आपका पूरा नाम', state: 'राज्य', district: 'जिला', mandal: 'मंडल', crop: 'मुख्य फसल', otherCrop: 'फसल का नाम लिखें', otherLocation: 'स्थान लिखें', submit: 'पंजीकरण पूरा करें', back: 'वापस जाएं', switchLogin: 'पहले से सदस्य हैं? लॉगिन करें', switchRegister: 'नया खाता? पंजीकरण करें', error: 'सत्यापन विफल। फिर प्रयास करें।', userNotFound: 'इस नंबर के लिए कोई प्रोफ़ाइल नहीं मिली। कृपया पंजीकरण करें।', userExists: 'खाता पहले से मौजूद है। कृपया लॉगिन करें।' },
+    auth: { titleLogin: 'लॉगिन करें', titleRegister: 'खाता बनाएं', subtitle: 'किसापोर्टल तक सुरक्षित पहुंच', phone: 'फ़ोन नंबर', phonePlaceholder: '98765 43210', sendOtp: 'ओटीपी प्राप्त करें', otp: '६-अंकों का ओटीपी दर्ज करें', verify: 'सत्यापित करें', profile: 'किसान प्रोफ़ाइल जानकारी', name: 'आपका पूरा नाम', state: 'राज्य', district: 'जिला', mandal: 'मंडल', crop: 'मुख्य फसल', otherCrop: 'फसल का नाम लिखें', otherLocation: 'स्थान लिखें', submit: 'पंजीकरण पूरा करें', back: 'वापस जाएं', switchLogin: 'पहले से सदस्य हैं? लॉगिन करें', switchRegister: 'नया खाता? पंजीकरण करें', error: 'सत्यापन विफल। फिर प्रयास करें।', userNotFound: 'इस नंबर के लिए कोई प्रोफ़ाइल नहीं मिली। कृपया पंजीकरण करें।', userExists: 'इस नंबर के लिए खाता पहले से मौजूद है। कृपया लॉगिन करें।' },
     hero: { badge: 'भारतीय कृषि का सशक्तिकरण', title: 'आज ही भविष्य की खेती करें', desc: 'किसानपोर्टल आधुनिक उत्पादकों के लिए एक निश्चित पारिस्थितिकी तंत्र है।' },
     chat: { name: 'किसान एआई सहायक', status: 'ऑनलाइन', welcome: 'नमस्ते! किसानपोर्टल पर वापस स्वागत है।', actions: { weather: 'मौसम', soil: 'मिट्टी', market: 'बाजार', seed: 'बीज' } },
     toast: { welcome: 'स्वागत है', status: 'पहचान सत्यापित' }
@@ -115,7 +115,7 @@ const languages = [
 
 const AuthModal = ({ isOpen, onClose, lang, t, onAuthSuccess, initialMode = 'login' }: any) => {
   const [mode, setMode] = useState(initialMode); 
-  const [step, setStep] = useState('phone'); // phone -> otp -> profile
+  const [step, setStep] = useState('phone'); 
   const [phoneNumber, setPhoneNumber] = useState('');
   const [otp, setOtp] = useState('');
   const [error, setError] = useState('');
@@ -177,13 +177,18 @@ const AuthModal = ({ isOpen, onClose, lang, t, onAuthSuccess, initialMode = 'log
           onAuthSuccess(userDoc.data());
           onClose();
         } else {
+          // Explicitly sign out if profile doesn't exist to prevent observer from logging them in partially
+          await signOut(auth);
           setError(t.auth.userNotFound);
         }
       } else {
-        // Register mode
+        // Register mode: Check if profile already exists
         if (userDoc.exists()) {
+          // If profile exists, registration is invalid for this number
+          await signOut(auth);
           setError(t.auth.userExists);
         } else {
+          // Proceed to fill profile
           setStep('profile');
         }
       }
@@ -198,7 +203,7 @@ const AuthModal = ({ isOpen, onClose, lang, t, onAuthSuccess, initialMode = 'log
     setLoading(true);
     try {
       const uid = auth.currentUser?.uid;
-      if (!uid) throw new Error("Authentication context lost");
+      if (!uid) throw new Error("Authentication failed");
 
       const finalProfile = {
         uid,
@@ -238,7 +243,7 @@ const AuthModal = ({ isOpen, onClose, lang, t, onAuthSuccess, initialMode = 'log
         <div className="p-8 overflow-y-auto">
           {error && (
             <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-2xl text-xs font-black border border-red-100 flex items-center gap-3">
-              <div className="bg-red-500 text-white p-1 rounded-full"><X className="w-3 h-3" /></div>
+              <div className="bg-red-500 text-white p-1 rounded-full shrink-0"><X className="w-3 h-3" /></div>
               {error}
             </div>
           )}
@@ -323,18 +328,15 @@ const AuthModal = ({ isOpen, onClose, lang, t, onAuthSuccess, initialMode = 'log
 
               <div className="space-y-1">
                 <label className="text-[10px] font-black uppercase text-slate-400 ml-2">{t.auth.state}</label>
-                <div className="relative">
-                  <select 
-                    required 
-                    value={profile.state} 
-                    onChange={(e) => setProfile({...profile, state: e.target.value, district: '', mandal: ''})}
-                    className="w-full bg-slate-50 rounded-xl py-3.5 px-4 border border-slate-200 focus:ring-2 focus:ring-green-500/20 outline-none text-sm font-bold appearance-none cursor-pointer"
-                  >
-                    <option value="">Select State</option>
-                    {Object.keys(locationData).map(s => <option key={s} value={s}>{s}</option>)}
-                  </select>
-                  <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none rotate-90" />
-                </div>
+                <select 
+                  required 
+                  value={profile.state} 
+                  onChange={(e) => setProfile({...profile, state: e.target.value, district: '', mandal: ''})}
+                  className="w-full bg-slate-50 rounded-xl py-3.5 px-4 border border-slate-200 focus:ring-2 focus:ring-green-500/20 outline-none text-sm font-bold appearance-none cursor-pointer"
+                >
+                  <option value="">Select State</option>
+                  {Object.keys(locationData).map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
               </div>
 
               {profile.state === 'Other' && (
@@ -347,18 +349,15 @@ const AuthModal = ({ isOpen, onClose, lang, t, onAuthSuccess, initialMode = 'log
               {profile.state && profile.state !== 'Other' && (
                 <div className="space-y-1">
                   <label className="text-[10px] font-black uppercase text-slate-400 ml-2">{t.auth.district}</label>
-                  <div className="relative">
-                    <select 
-                      required 
-                      value={profile.district} 
-                      onChange={(e) => setProfile({...profile, district: e.target.value, mandal: ''})}
-                      className="w-full bg-slate-50 rounded-xl py-3.5 px-4 border border-slate-200 focus:ring-2 focus:ring-green-500/20 outline-none text-sm font-bold appearance-none cursor-pointer"
-                    >
-                      <option value="">Select District</option>
-                      {Object.keys(locationData[profile.state].districts).map(d => <option key={d} value={d}>{d}</option>)}
-                    </select>
-                    <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none rotate-90" />
-                  </div>
+                  <select 
+                    required 
+                    value={profile.district} 
+                    onChange={(e) => setProfile({...profile, district: e.target.value, mandal: ''})}
+                    className="w-full bg-slate-50 rounded-xl py-3.5 px-4 border border-slate-200 focus:ring-2 focus:ring-green-500/20 outline-none text-sm font-bold appearance-none cursor-pointer"
+                  >
+                    <option value="">Select District</option>
+                    {Object.keys(locationData[profile.state].districts).map(d => <option key={d} value={d}>{d}</option>)}
+                  </select>
                 </div>
               )}
 
@@ -372,18 +371,15 @@ const AuthModal = ({ isOpen, onClose, lang, t, onAuthSuccess, initialMode = 'log
               {profile.district && profile.district !== 'Other' && (
                 <div className="space-y-1">
                   <label className="text-[10px] font-black uppercase text-slate-400 ml-2">{t.auth.mandal}</label>
-                  <div className="relative">
-                    <select 
-                      required 
-                      value={profile.mandal} 
-                      onChange={(e) => setProfile({...profile, mandal: e.target.value})}
-                      className="w-full bg-slate-50 rounded-xl py-3.5 px-4 border border-slate-200 focus:ring-2 focus:ring-green-500/20 outline-none text-sm font-bold appearance-none cursor-pointer"
-                    >
-                      <option value="">Select Mandal</option>
-                      {locationData[profile.state].districts[profile.district].map((m: string) => <option key={m} value={m}>{m}</option>)}
-                    </select>
-                    <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none rotate-90" />
-                  </div>
+                  <select 
+                    required 
+                    value={profile.mandal} 
+                    onChange={(e) => setProfile({...profile, mandal: e.target.value})}
+                    className="w-full bg-slate-50 rounded-xl py-3.5 px-4 border border-slate-200 focus:ring-2 focus:ring-green-500/20 outline-none text-sm font-bold appearance-none cursor-pointer"
+                  >
+                    <option value="">Select Mandal</option>
+                    {locationData[profile.state].districts[profile.district].map((m: string) => <option key={m} value={m}>{m}</option>)}
+                  </select>
                 </div>
               )}
 
@@ -396,18 +392,15 @@ const AuthModal = ({ isOpen, onClose, lang, t, onAuthSuccess, initialMode = 'log
 
               <div className="md:col-span-2 space-y-1">
                 <label className="text-[10px] font-black uppercase text-slate-400 ml-2">{t.auth.crop}</label>
-                <div className="relative">
-                  <select 
-                    required 
-                    value={profile.crop} 
-                    onChange={(e) => setProfile({...profile, crop: e.target.value})}
-                    className="w-full bg-slate-50 rounded-xl py-3.5 px-4 border border-slate-200 focus:ring-2 focus:ring-green-500/20 outline-none text-sm font-bold appearance-none cursor-pointer"
-                  >
-                    <option value="">Select Primary Crop</option>
-                    {cropOptions.map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                  <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none rotate-90" />
-                </div>
+                <select 
+                  required 
+                  value={profile.crop} 
+                  onChange={(e) => setProfile({...profile, crop: e.target.value})}
+                  className="w-full bg-slate-50 rounded-xl py-3.5 px-4 border border-slate-200 focus:ring-2 focus:ring-green-500/20 outline-none text-sm font-bold appearance-none cursor-pointer"
+                >
+                  <option value="">Select Primary Crop</option>
+                  {cropOptions.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
               </div>
 
               {profile.crop === 'Other' && (
@@ -470,6 +463,79 @@ const SectionHero = ({ t }: any) => (
           </button>
           <button className="bg-white/10 backdrop-blur-xl hover:bg-white/20 border border-white/30 text-white px-8 md:px-10 py-4 md:py-5 rounded-2xl font-black text-base md:text-lg shadow-2xl hover:-translate-y-1">{(t.hero as any).explore}</button>
         </div>
+      </div>
+    </div>
+  </section>
+);
+
+const SectionImportance = ({ t }: any) => (
+  <section id="backbone" className="py-24 md:py-32 bg-white">
+    <div className="max-w-[1600px] mx-auto px-6 md:px-12 grid lg:grid-cols-2 gap-16 md:gap-24 items-center">
+      <div className="fade-in relative">
+        <div className="absolute -top-12 -left-12 w-48 h-48 bg-green-50 rounded-full blur-3xl opacity-60"></div>
+        <div className="relative z-10 rounded-[2.5rem] md:rounded-[3rem] overflow-hidden shadow-2xl">
+          <img src="https://images.unsplash.com/photo-1595841696677-6489ff3f8cd1?auto=format&fit=crop&q=80&w=1200" alt="Farmer" className="w-full aspect-[4/5] object-cover hover:scale-105 transition-transform" />
+        </div>
+        <div className="absolute -bottom-12 -right-12 bg-green-900 text-white p-8 md:p-12 rounded-[2.5rem] shadow-2xl max-w-sm hidden xl:block z-20 border-8 border-white">
+          <p className="italic text-lg md:text-xl mb-6 leading-relaxed">"{(t.importance as any).quote}"</p>
+          <div className="h-px w-12 bg-green-400 mb-4"></div>
+          <span className="font-black text-green-400 uppercase tracking-widest text-sm">— KisanPortal Insights</span>
+        </div>
+      </div>
+      <div className="fade-in">
+        <span className="text-green-600 font-black tracking-[0.3em] uppercase text-xs md:text-sm mb-6 block">{(t.importance as any).badge}</span>
+        <h2 className="text-4xl md:text-5xl lg:text-7xl font-serif text-slate-900 mb-8 leading-tight">{(t.importance as any).title}</h2>
+        <p className="text-slate-600 text-lg md:text-xl mb-12 leading-relaxed font-light">{(t.importance as any).desc}</p>
+        <div className="grid sm:grid-cols-2 gap-6 md:gap-8">
+          {[ShieldCheck, Users, TrendingUp, Sprout].map((Icon, idx) => (
+            <div key={idx} className="flex flex-col gap-4 p-5 md:p-6 rounded-3xl hover:bg-slate-50 border border-transparent hover:border-slate-100 group transition-all">
+              <div className="w-12 h-12 md:w-14 md:h-14 bg-green-100 rounded-2xl flex items-center justify-center text-green-600 group-hover:bg-green-600 group-hover:text-white transition-all shadow-sm"><Icon className="w-6 h-6 md:w-7 md:h-7" /></div>
+              <h3 className="text-base md:text-lg font-black text-slate-900">Resource {idx + 1}</h3>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </section>
+);
+
+const SectionTech = ({ t }: any) => (
+  <section id="tech" className="py-24 md:py-32 bg-slate-50 overflow-hidden">
+    <div className="max-w-[1600px] mx-auto px-6 md:px-12">
+      <div className="flex flex-col lg:flex-row justify-between items-end mb-16 md:mb-20 gap-8 md:gap-12 fade-in">
+        <div className="max-w-2xl">
+          <span className="text-green-600 font-black tracking-[0.3em] uppercase text-xs md:text-sm mb-6 block">{(t.tech as any).badge}</span>
+          <h2 className="text-4xl md:text-5xl lg:text-7xl font-serif leading-tight">{(t.tech as any).title} <span className="text-green-600 italic">{(t.tech as any).subtitle}</span></h2>
+        </div>
+        <p className="text-slate-500 text-lg md:text-xl max-w-md lg:text-right font-light leading-relaxed">{(t.tech as any).desc}</p>
+      </div>
+      <div className="grid md:grid-cols-3 gap-8 md:gap-10">
+        {[Tractor, Droplets, Microscope].map((Icon, idx) => (
+          <div key={idx} className="fade-in group bg-white rounded-[2.5rem] md:rounded-[3rem] overflow-hidden shadow-sm hover:shadow-2xl transition-all border border-slate-200/50 p-8 md:p-10">
+            <div className="w-14 h-14 md:w-16 md:h-16 bg-green-100 rounded-2xl flex items-center justify-center text-green-700 mb-8 group-hover:bg-green-600 group-hover:text-white transition-all"><Icon className="w-7 h-7 md:w-8 md:h-8" /></div>
+            <h3 className="text-xl md:text-2xl font-black mb-4">Innovation {idx + 1}</h3>
+            <p className="text-slate-500 leading-relaxed text-base md:text-lg font-light">Advanced digital infrastructure for modern farming needs.</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+);
+
+const SectionFeatures = ({ t }: any) => (
+  <section id="features" className="py-24 md:py-32 bg-green-950 text-white relative overflow-hidden">
+    <div className="max-w-[1600px] mx-auto px-6 md:px-12 relative z-10">
+      <div className="text-center max-w-4xl mx-auto mb-16 md:mb-24 fade-in">
+        <h2 className="text-4xl md:text-5xl lg:text-7xl font-serif mb-8 leading-tight">{(t.features as any).title}</h2>
+        <div className="h-1 w-24 md:w-32 bg-green-500 mx-auto rounded-full"></div>
+      </div>
+      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-10">
+        {[{icon: CloudSun, key: 'weather'}, {icon: TrendingUp, key: 'market'}, {icon: Users, key: 'coop'}, {icon: ShieldCheck, key: 'insurance'}].map((item, idx) => (
+          <div key={idx} className="fade-in border border-white/5 bg-white/[0.03] hover:bg-white/[0.08] backdrop-blur-md p-8 md:p-10 rounded-[2.5rem] transition-all group hover:-translate-y-2">
+            <div className="w-14 h-14 md:w-16 md:h-16 bg-green-600/20 rounded-2xl flex items-center justify-center text-green-400 mb-8 group-hover:scale-110 group-hover:bg-green-500 transition-all shadow-lg"><item.icon className="w-8 h-8 md:w-9 md:h-9" /></div>
+            <h3 className="text-xl md:text-2xl font-black mb-4">{(t.features as any)[item.key]}</h3>
+          </div>
+        ))}
       </div>
     </div>
   </section>
@@ -589,7 +655,10 @@ const App: React.FC = () => {
           setIsLoggedIn(true);
         } else {
           // Trigger registration profile setup if user exists in Auth but not in Firestore
-          setAuthModal({ isOpen: true, mode: 'register' });
+          // and they aren't already in the middle of a flow in the modal
+          if (!authModal.isOpen) {
+            setAuthModal({ isOpen: true, mode: 'register' });
+          }
         }
       } else {
         setIsLoggedIn(false);
@@ -625,22 +694,9 @@ const App: React.FC = () => {
       
       <main className="w-full flex-1">
         <SectionHero t={t} />
-        {/* Placeholder for other sections which would remain identical to previous implementation */}
-        <section id="backbone" className="py-24 md:py-32 bg-white">
-          <div className="max-w-[1600px] mx-auto px-6 md:px-12 grid lg:grid-cols-2 gap-16 md:gap-24 items-center">
-            <div className="fade-in relative">
-              <div className="absolute -top-12 -left-12 w-48 h-48 bg-green-50 rounded-full blur-3xl opacity-60"></div>
-              <div className="relative z-10 rounded-[2.5rem] md:rounded-[3rem] overflow-hidden shadow-2xl">
-                <img src="https://images.unsplash.com/photo-1595841696677-6489ff3f8cd1?auto=format&fit=crop&q=80&w=1200" alt="Farmer" className="w-full aspect-[4/5] object-cover hover:scale-105 transition-transform" />
-              </div>
-            </div>
-            <div className="fade-in">
-              <span className="text-green-600 font-black tracking-[0.3em] uppercase text-xs md:text-sm mb-6 block">{(t.importance as any).badge}</span>
-              <h2 className="text-4xl md:text-5xl lg:text-7xl font-serif text-slate-900 mb-8 leading-tight">{(t.importance as any).title}</h2>
-              <p className="text-slate-600 text-lg md:text-xl mb-12 leading-relaxed font-light">{(t.importance as any).desc}</p>
-            </div>
-          </div>
-        </section>
+        <SectionImportance t={t} />
+        <SectionTech t={t} />
+        <SectionFeatures t={t} />
       </main>
       
       <footer className="bg-slate-950 pt-24 md:pt-32 pb-12 text-slate-400 text-center shrink-0">
@@ -648,9 +704,12 @@ const App: React.FC = () => {
           <div className="flex flex-col items-center gap-6 mb-12">
             <div className="bg-green-600 p-2 rounded-2xl"><Sprout className="text-white w-6 h-6 md:w-8 md:h-8" /></div>
             <span className="text-2xl md:text-3xl font-black text-white">KisanPortal</span>
+            <p className="max-w-xl text-sm md:text-base opacity-60 leading-relaxed mx-auto">Cultivating progress through technology and tradition. Feeding the world, protecting the soil.</p>
           </div>
           <div className="pt-12 border-t border-slate-900 text-[10px] font-bold uppercase tracking-widest flex justify-center gap-8 md:gap-10">
-            <a href="#">Privacy</a><a href="#">Terms</a><a href="#">Contact</a>
+            <a href="#" className="hover:text-green-500 transition-colors">Privacy</a>
+            <a href="#" className="hover:text-green-500 transition-colors">Terms</a>
+            <a href="#" className="hover:text-green-500 transition-colors">Contact</a>
           </div>
         </div>
       </footer>
