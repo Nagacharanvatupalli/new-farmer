@@ -81,7 +81,7 @@ const locationData: any = {
 const cropOptions = ["Paddy", "Wheat", "Cotton", "Chilli", "Turmeric", "Maize", "Groundnut", "Tomato", "Onion", "Sugarcane", "Other"];
 
 // --- Translations ---
-const translations = {
+const translations: any = {
   en: {
     nav: { home: 'Home', cropDetails: 'Crops', weather: 'Weather', dashboard: 'Dashboard', suggestions: 'Suggestions', login: 'Login', register: 'Register', logout: 'Logout' },
     hero: { badge: 'Empowering Indian Agriculture', title: 'Cultivate the Future Today', desc: 'KisanPortal is the definitive ecosystem for modern growers. We bridge legacy farming wisdom with state-of-the-art analytics.', join: 'Join the Network', explore: 'Explore Services' },
@@ -94,21 +94,52 @@ const translations = {
       submit: 'Complete Registration', back: 'Go Back', switchLogin: 'Already a member? Login', switchRegister: 'New to KisanPortal? Register',
       error: 'Authentication failed. Please try again.', userNotFound: 'No profile found for this number. Please Register.', userExists: 'Account already exists for this number. Please Login.'
     },
-    chat: { name: 'Kisan AI Assistant', status: 'Online • 24/7 Support', welcome: 'Namaste! Welcome back to KisanPortal. How can I help you optimize your harvest today? 🌾', placeholder: 'Type your message...', quickActions: 'Quick Actions', actions: { weather: 'Weather', soil: 'Soil', market: 'Market', seed: 'Seeds' } },
     toast: { welcome: 'Welcome back', status: 'Identity Verified' }
   },
   hi: {
     nav: { home: 'मुख्य', cropDetails: 'फसल', weather: 'मौसम', dashboard: 'डैशबोर्ड', suggestions: 'सुझाव', login: 'लॉगिन', register: 'पंजीकरण', logout: 'लॉगआउट' },
+    hero: { badge: 'भारतीय कृषि का सशक्तिकরণ', title: 'आज ही भविष्य की खेती करें', desc: 'किसानपोर्टल आधुनिक उत्पादकों के लिए एक पारिस्थितिकी तंत्र है।' },
+    importance: { badge: 'पृथ्वी की रीढ़', title: 'राष्ट्रों को खिलाना, भविष्य का निर्माण', desc: 'मानव इतिहास में हर क्रांति खाद्य अधिशेष के साथ शुरू हुई।', quote: 'किसान ही एकमात्र आवश्यक कर्मचारी हैं जो केवल बीज और कड़ी मेहनत से कुछ भी बनाते हैं।' },
+    tech: { badge: 'डिजिटल फसल', title: 'हाई-टेक समाधान', subtitle: 'गहरी जड़ें वाली परंपराएं', desc: 'स्थायी कृषि भविष्य बनाने के लिए एआई और आईओटी का उपयोग करना।' },
+    features: { title: 'वह सब कुछ जो आपको फलने-फूलने के लिए चाहिए', weather: 'सैटेलाइट मौसम', market: 'बाजार विश्लेषण', coop: 'सहकारी लैब', insurance: 'स्मार्ट बीमा' },
     auth: { titleLogin: 'लॉगिन करें', titleRegister: 'खाता बनाएं', subtitle: 'किसापोर्टल तक सुरक्षित पहुंच', phone: 'फ़ोन नंबर', phonePlaceholder: '98765 43210', sendOtp: 'ओटीपी प्राप्त करें', otp: '६-अंकों का ओटीपी दर्ज करें', verify: 'सत्यापित करें', profile: 'किसान प्रोफ़ाइल जानकारी', name: 'आपका पूरा नाम', state: 'राज्य', district: 'जिला', mandal: 'मंडल', crop: 'मुख्य फसल', otherCrop: 'फसल का नाम लिखें', otherLocation: 'स्थान लिखें', submit: 'पंजीकरण पूरा करें', back: 'वापस जाएं', switchLogin: 'पहले से सदस्य हैं? लॉगिन करें', switchRegister: 'नया खाता? पंजीकरण करें', error: 'सत्यापन विफल। फिर प्रयास करें।', userNotFound: 'इस नंबर के लिए कोई प्रोफ़ाइल नहीं मिली। कृपया पंजीकरण करें।', userExists: 'इस नंबर के लिए खाता पहले से मौजूद है। कृपया लॉगिन करें।' },
-    hero: { badge: 'भारतीय कृषि का सशक्तिकरण', title: 'आज ही भविष्य की खेती करें', desc: 'किसानपोर्टल आधुनिक उत्पादकों के लिए एक निश्चित पारिस्थितिकी तंत्र है।' },
-    chat: { name: 'किसान एआई सहायक', status: 'ऑनलाइन', welcome: 'नमस्ते! किसानपोर्टल पर वापस स्वागत है।', actions: { weather: 'मौसम', soil: 'मिट्टी', market: 'बाजार', seed: 'बीज' } },
     toast: { welcome: 'स्वागत है', status: 'पहचान सत्यापित' }
+  },
+  te: {
+    nav: { home: 'హోమ్', cropDetails: 'పంటలు', weather: 'వాతావరణం', dashboard: 'డ్యాష్‌బోర్డ్', suggestions: 'సూచనలు', login: 'లాగిన్', register: 'రిజిస్టర్', logout: 'లాగ్అవుట్' },
+    hero: { badge: 'భారతీయ వ్యవసాయ సాధికారత', title: 'భవిష్యత్తును సాగు చేద్దాం', desc: 'కిసాన్ పోర్టల్ ఆధునిక రైతులకు ఒక అద్భుతమైన వేదిక.' },
+    importance: { badge: 'భూమికి వెన్నెముక', title: 'దేశాలకు ఆహారం, భవిష్యత్ నిర్మాణం', desc: 'మానవ చరిత్రలో ప్రతి విప్లవం ఆహార మిగులుతోనే ప్రారంభమైంది.', quote: 'రైతులు కేవలం విత్తనం మరియు కష్టంతో శూన్యం నుండి ఏదైనా సృష్టించే ఏకైక అవసరమైన కార్మికులు.' },
+    tech: { badge: 'డిజిటల్ హార్వెస్ట్', title: 'హై-టెక్ సొల్యూషన్స్', subtitle: 'లోతైన సంప్రదాయాలు', desc: 'స్థిరమైన వ్యవసాయ భవిష్యత్తును సృష్టించడానికి AI మరియు IoT శక్తిని ఉపయోగించడం.' },
+    features: { title: 'మీరు అభివృద్ధి చెందడానికి కావలసినవన్నీ', weather: 'వాతావరణం', market: 'మార్కెట్ అనలిటిక్స్', coop: 'కోఆపరేటివ్ ల్యాబ్', insurance: 'ఇన్సూరెన్స్' },
+    auth: { titleLogin: 'లాగిన్', titleRegister: 'ఖాతాను సృష్టించండి', subtitle: 'కిసాన్ పోర్టల్‌కు సురక్షిత ప్రవేశం', phone: 'ఫోన్ నంబర్', sendOtp: 'OTP పొందండి', verify: 'ధృవీకరించండి', profile: 'రైతు ప్రొఫైల్ సమాచారం', name: 'పూర్తి పేరు', state: 'రాష్ట్రం', district: 'జిల్లా', mandal: 'మండలం', crop: 'ప్రధాన పంట', submit: 'రిజిస్ట్రేషన్ పూర్తి చేయండి', back: 'వెనక్కి', switchLogin: 'ఖాతా ఉందా? లాగిన్ అవ్వండి', switchRegister: 'కొత్తవారా? రిజిస్టర్ అవ్వండి', error: 'ధృవీకరణ విఫలమైంది.', userNotFound: 'ప్రొఫైల్ కనుగొనబడలేదు. దయచేసి రిజిస్టర్ చేసుకోండి.', userExists: 'ఈ నంబర్‌తో ఇప్పటికే ఖాతా ఉంది. దయచేసి లాగిన్ అవ్వండి.' },
+    toast: { welcome: 'స్వాగతం', status: 'గుర్తింపు ధృవీకరించబడింది' }
+  },
+  ta: {
+    nav: { home: 'முகப்பு', cropDetails: 'பயிர்கள்', weather: 'வானிலை', dashboard: 'டாஷ்போர்டு', suggestions: 'பரிந்துரைகள்', login: 'உள்நுழை', register: 'பதிவு செய்', logout: 'வெளியேறு' },
+    hero: { badge: 'இந்திய விவசாய அதிகாரமளித்தல்', title: 'வருங்காலத்தை பயிரிடுவோம்', desc: 'கிசான் போர்ட்டல் நவீன விவசாயிகளுக்கான ஒரு சிறந்த தளமாகும்.' },
+    importance: { badge: 'பூமியின் முதுகெலும்பு', title: 'நாடுகளுக்கு உணவு, எதிர்காலத்தை உருவாக்குதல்', desc: 'மனித வரலாற்றில் ஒவ்வொரு புரட்சியும் உணவு உபரியுடன் தொடங்கியது.', quote: 'விவசாயிகள் மட்டுமே ஒரு விதையிலிருந்தும் கடின உழைப்பிலிருந்தும் எதையாவது உருவாக்கும் ஒரே அத்தியாவசிய தொழிலாளர்கள்.' },
+    tech: { badge: 'டிஜிட்டல் அறுவடை', title: 'உயர் தொழில்நுட்ப தீர்வுகள்', subtitle: 'ஆழ்ந்த மரபுகள்', desc: 'நிலையான விவசாய எதிர்காலத்தை உருவாக்க AI மற்றும் IoT சக்தியைப் பயன்படுத்துதல்.' },
+    features: { title: 'நீங்கள் செழிக்க வேண்டிய அனைத்தும்', weather: 'வானிலை', market: 'சந்தை பகுப்பாய்வு', coop: 'கூட்டுறவு ஆய்வகம்', insurance: 'காப்பீடு' },
+    auth: { titleLogin: 'உள்நுழை', titleRegister: 'கணக்கை உருவாக்கு', subtitle: 'கிசான் போர்ட்டலுக்கு பாதுகாப்பான அணுகல்', phone: 'தொலைபேசி எண்', sendOtp: 'OTP பெறு', verify: 'சரிபார்க்கவும்', profile: 'விவசாயி சுயவிவரத் தகவல்', name: 'முழு பெயர்', state: 'மாநிலம்', district: 'மாவட்டம்', mandal: 'மண்டலம்', crop: 'முதன்மை பயிர்', submit: 'பதிவை முடிக்கவும்', back: 'பின்னால்', switchLogin: 'கணக்கு உள்ளதா? உள்நுழையவும்', switchRegister: 'புதியவரா? பதிவு செய்யவும்', error: 'சரிபார்ப்பு தோல்வியடைந்தது.', userNotFound: 'சுயவிவரம் இல்லை. பதிவு செய்யவும்.', userExists: 'இந்த எண்ணில் ஏற்கனவே கணக்கு உள்ளது. உள்நுழையவும்.' },
+    toast: { welcome: 'வரவேற்கிறோம்', status: 'அடையாளம் சரிபார்க்கப்பட்டது' }
+  },
+  kn: {
+    nav: { home: 'ಮುಖಪುಟ', cropDetails: 'ಬೆಳೆಗಳು', weather: 'ಹವಾಮಾನ', dashboard: 'ಡ್ಯಾಶ್‌ಬೋರ್ಡ್', suggestions: 'ಸಲಹೆಗಳು', login: 'ಲಾಗಿನ್', register: 'ನೋಂದಣಿ', logout: 'ಲಾಗ್‌ಔಟ್' },
+    hero: { badge: 'ಭಾರತೀಯ ಕೃಷಿ ಸಬಲೀಕರಣ', title: 'ಭವಿಷ್ಯವನ್ನು ಬೆಳೆಸೋಣ', desc: 'ಕಿಸಾನ್ ಪೋರ್ಟಲ್ ಆಧುನಿಕ ರೈತರಿಗಾಗಿ ಒಂದು ಉತ್ತಮ ವೇದಿಕೆಯಾಗಿದೆ.' },
+    importance: { badge: 'ಭೂಮಿಯ ಬೆನ್ನೆಲುಬು', title: 'ದೇಶಗಳಿಗೆ ಆಹಾರ, ಭವಿಷ್ಯದ ನಿರ್ಮಾಣ', desc: 'ಮಾನವ ಇತಿಹಾಸದ ಪ್ರತಿಯೊಂದು ಕ್ರಾಂತಿಯು ಆಹಾರದ ಮಿಗುತೆಯೊಂದಿಗೆ ಪ್ರಾರಂಭವಾಯಿತು.', quote: 'ರೈತರು ಕೇವಲ ಬೀಜ ಮತ್ತು ಕಠಿಣ ಪರಿಶ್ರಮದಿಂದ ಶೂನ್ಯದಿಂದ ಏನನ್ನಾದರೂ ಸೃಷ್ಟಿಸುವ ಏಕೈಕ ಅಗತ್ಯ ಕೆಲಸಗಾರರು.' },
+    tech: { badge: 'ಡಿಜಿಟಲ್ ಹಾರ್ವೆಸ್ಟ್', title: 'ಹೈ-ಟೆಕ್ ಪರಿಹಾರಗಳು', subtitle: 'ಆಳವಾದ ಸಂಪ್ರದಾಯಗಳು', desc: 'ಸುಸ್ಥಿರ ಕೃಷಿ ಭವಿಷ್ಯವನ್ನು ಸೃಷ್ಟಿಸಲು AI ಮತ್ತು IoT ಶಕ್ತಿಯನ್ನು ಬಳಸುವುದು.' },
+    features: { title: 'ನೀವು ಅಭಿವೃದ್ಧಿ ಹೊಂದಲು ಬೇಕಾದ ಎಲ್ಲವೂ', weather: 'ಹವಾಮಾನ', market: 'ಮಾರುಕಟ್ಟೆ ವಿಶ್ಲೇಷಣೆ', coop: 'ಸಹಕಾರಿ ಪ್ರಯೋಗಾಲಯ', insurance: 'ವಿಮೆ' },
+    auth: { titleLogin: 'ಲಾಗಿನ್', titleRegister: 'ಖಾತೆ ತೆರೆಯಿರಿ', subtitle: 'ಕಿಸಾನ್ ಪೋರ್ಟಲ್‌ಗೆ ಸುರಕ್ಷಿತ ಪ್ರವೇಶ', phone: 'ಫೋನ್ ಸಂಖ್ಯೆ', sendOtp: 'OTP ಪಡೆಯಿರಿ', verify: 'ದೃಢೀಕರಿಸಿ', profile: 'ರೈತರ ಪ್ರೊಫೈಲ್ ಮಾಹಿತಿ', name: 'ಪೂರ್ಣ ಹೆಸರು', state: 'ರಾಜ್ಯ', district: 'ಜಿಲ್ಲೆ', mandal: 'ಮಂಡಲ', crop: 'ಮುಖ್ಯ ಬೆಳೆ', submit: 'ನೋಂದಣಿ ಪೂರ್ಣಗೊಳಿಸಿ', back: 'ಹಿಂದಕ್ಕೆ', switchLogin: 'ಖಾತೆ ಇದೆಯೇ? ಲಾಗಿನ್ ಆಗಿ', switchRegister: 'ಹೊಸಬರೇ? ನೋಂದಾಯಿಸಿ', error: 'ದೃಢೀಕರಣ ವಿಫಲವಾಗಿದೆ.', userNotFound: 'ಪ್ರೊಫೈಲ್ ಕಂಡುಬಂದಿಲ್ಲ. ದಯವಿಟ್ಟು ನೋಂದಾಯಿಸಿ.', userExists: 'ಈ ಸಂಖ್ಯೆಯ ಖಾತೆ ಈಗಾಗಲೇ ಇದೆ. ಲಾಗಿನ್ ಆಗಿ.' },
+    toast: { welcome: 'ಸ್ವಾಗತ', status: 'ಗುರುತು ದೃಢೀಕರಿಸಲ್ಪಟ್ಟಿದೆ' }
   }
 };
 
 const languages = [
   { code: 'en', name: 'English' },
   { code: 'hi', name: 'हिंदी' },
+  { code: 'te', name: 'తెలుగు' },
+  { code: 'ta', name: 'தமிழ்' },
+  { code: 'kn', name: 'ಕನ್ನಡ' },
 ];
 
 // --- Authentication Modal ---
@@ -159,7 +190,7 @@ const AuthModal = ({ isOpen, onClose, lang, t, onAuthSuccess, initialMode = 'log
       setConfirmationResult(result);
       setStep('otp');
     } catch (err: any) {
-      setError(t.auth.error);
+      setError(t.auth.error || 'Failed to send OTP');
     }
     setLoading(false);
   };
@@ -177,23 +208,19 @@ const AuthModal = ({ isOpen, onClose, lang, t, onAuthSuccess, initialMode = 'log
           onAuthSuccess(userDoc.data());
           onClose();
         } else {
-          // Explicitly sign out if profile doesn't exist to prevent observer from logging them in partially
           await signOut(auth);
           setError(t.auth.userNotFound);
         }
       } else {
-        // Register mode: Check if profile already exists
         if (userDoc.exists()) {
-          // If profile exists, registration is invalid for this number
           await signOut(auth);
           setError(t.auth.userExists);
         } else {
-          // Proceed to fill profile
           setStep('profile');
         }
       }
     } catch (err: any) {
-      setError(t.auth.error);
+      setError(t.auth.error || 'Verification failed');
     }
     setLoading(false);
   };
@@ -203,7 +230,7 @@ const AuthModal = ({ isOpen, onClose, lang, t, onAuthSuccess, initialMode = 'log
     setLoading(true);
     try {
       const uid = auth.currentUser?.uid;
-      if (!uid) throw new Error("Authentication failed");
+      if (!uid) throw new Error("Session expired");
 
       const finalProfile = {
         uid,
@@ -220,7 +247,7 @@ const AuthModal = ({ isOpen, onClose, lang, t, onAuthSuccess, initialMode = 'log
       onAuthSuccess(finalProfile);
       onClose();
     } catch (err: any) {
-      setError(t.auth.error);
+      setError(t.auth.error || 'Profile save failed');
     }
     setLoading(false);
   };
@@ -361,7 +388,7 @@ const AuthModal = ({ isOpen, onClose, lang, t, onAuthSuccess, initialMode = 'log
                 </div>
               )}
 
-              {profile.district === 'Other' && (
+              {(profile.state !== 'Other' && profile.district === 'Other') && (
                 <div className="space-y-1">
                   <label className="text-[10px] font-black uppercase text-slate-400 ml-2">{t.auth.otherLocation} (District)</label>
                   <input required type="text" value={profile.otherDistrict} onChange={(e) => setProfile({...profile, otherDistrict: e.target.value})} className="w-full bg-slate-50 rounded-xl py-3.5 px-4 border border-slate-200 focus:ring-2 focus:ring-green-500/20 outline-none text-sm font-bold" />
@@ -383,7 +410,7 @@ const AuthModal = ({ isOpen, onClose, lang, t, onAuthSuccess, initialMode = 'log
                 </div>
               )}
 
-              {profile.mandal === 'Other' && (
+              {(profile.district !== 'Other' && profile.mandal === 'Other') && (
                 <div className="md:col-span-2 space-y-1">
                   <label className="text-[10px] font-black uppercase text-slate-400 ml-2">{t.auth.otherLocation} (Mandal)</label>
                   <input required type="text" value={profile.otherMandal} onChange={(e) => setProfile({...profile, otherMandal: e.target.value})} className="w-full bg-slate-50 rounded-xl py-3.5 px-4 border border-slate-200 focus:ring-2 focus:ring-green-500/20 outline-none text-sm font-bold" />
@@ -451,17 +478,17 @@ const SectionHero = ({ t }: any) => (
       <div className="max-w-4xl pt-8 lg:pt-0">
         <div className="inline-flex items-center gap-3 bg-green-500/20 backdrop-blur-md border border-green-400/30 rounded-full px-4 py-1.5 mb-8 animate-[fadeInLeft_1s_ease-out]">
           <div className="bg-green-400 w-1.5 h-1.5 rounded-full animate-pulse"></div>
-          <span className="text-[10px] md:text-xs uppercase tracking-[0.2em] font-black text-green-300">{(t.hero as any).badge}</span>
+          <span className="text-[10px] md:text-xs uppercase tracking-[0.2em] font-black text-green-300">{(t.hero?.badge || 'Portal')}</span>
         </div>
         <h1 className="text-4xl md:text-7xl lg:text-9xl font-serif leading-[1.1] mb-8 animate-[fadeInUp_1s_ease-out] drop-shadow-2xl">
-          {(t.hero as any).title.split(' ')[0]} <br /><span className="text-green-400">{(t.hero as any).title.split(' ').slice(1).join(' ')}</span>
+          {(t.hero?.title || 'Kisan').split(' ')[0]} <br /><span className="text-green-400">{(t.hero?.title || 'Portal').split(' ').slice(1).join(' ')}</span>
         </h1>
-        <p className="text-base md:text-xl lg:text-2xl text-slate-200 mb-10 max-w-2xl leading-relaxed font-light opacity-90 drop-shadow-lg">{(t.hero as any).desc}</p>
+        <p className="text-base md:text-xl lg:text-2xl text-slate-200 mb-10 max-w-2xl leading-relaxed font-light opacity-90 drop-shadow-lg">{(t.hero?.desc || '')}</p>
         <div className="flex flex-col sm:flex-row gap-4 md:gap-6">
           <button className="bg-green-600 hover:bg-green-700 text-white px-8 md:px-10 py-4 md:py-5 rounded-2xl font-black text-base md:text-lg flex items-center justify-center gap-3 group transition-all shadow-2xl shadow-green-900/40 hover:-translate-y-1">
-            {(t.hero as any).join} <ChevronRight className="w-5 h-5 md:w-6 md:h-6 group-hover:translate-x-1 transition-transform" />
+            {(t.hero?.join || 'Join')} <ChevronRight className="w-5 h-5 md:w-6 md:h-6 group-hover:translate-x-1 transition-transform" />
           </button>
-          <button className="bg-white/10 backdrop-blur-xl hover:bg-white/20 border border-white/30 text-white px-8 md:px-10 py-4 md:py-5 rounded-2xl font-black text-base md:text-lg shadow-2xl hover:-translate-y-1">{(t.hero as any).explore}</button>
+          <button className="bg-white/10 backdrop-blur-xl hover:bg-white/20 border border-white/30 text-white px-8 md:px-10 py-4 md:py-5 rounded-2xl font-black text-base md:text-lg shadow-2xl hover:-translate-y-1">{(t.hero?.explore || 'Explore')}</button>
         </div>
       </div>
     </div>
@@ -477,15 +504,15 @@ const SectionImportance = ({ t }: any) => (
           <img src="https://images.unsplash.com/photo-1595841696677-6489ff3f8cd1?auto=format&fit=crop&q=80&w=1200" alt="Farmer" className="w-full aspect-[4/5] object-cover hover:scale-105 transition-transform" />
         </div>
         <div className="absolute -bottom-12 -right-12 bg-green-900 text-white p-8 md:p-12 rounded-[2.5rem] shadow-2xl max-w-sm hidden xl:block z-20 border-8 border-white">
-          <p className="italic text-lg md:text-xl mb-6 leading-relaxed">"{(t.importance as any).quote}"</p>
+          <p className="italic text-lg md:text-xl mb-6 leading-relaxed">"{t.importance?.quote || ''}"</p>
           <div className="h-px w-12 bg-green-400 mb-4"></div>
           <span className="font-black text-green-400 uppercase tracking-widest text-sm">— KisanPortal Insights</span>
         </div>
       </div>
       <div className="fade-in">
-        <span className="text-green-600 font-black tracking-[0.3em] uppercase text-xs md:text-sm mb-6 block">{(t.importance as any).badge}</span>
-        <h2 className="text-4xl md:text-5xl lg:text-7xl font-serif text-slate-900 mb-8 leading-tight">{(t.importance as any).title}</h2>
-        <p className="text-slate-600 text-lg md:text-xl mb-12 leading-relaxed font-light">{(t.importance as any).desc}</p>
+        <span className="text-green-600 font-black tracking-[0.3em] uppercase text-xs md:text-sm mb-6 block">{t.importance?.badge || ''}</span>
+        <h2 className="text-4xl md:text-5xl lg:text-7xl font-serif text-slate-900 mb-8 leading-tight">{t.importance?.title || ''}</h2>
+        <p className="text-slate-600 text-lg md:text-xl mb-12 leading-relaxed font-light">{t.importance?.desc || ''}</p>
         <div className="grid sm:grid-cols-2 gap-6 md:gap-8">
           {[ShieldCheck, Users, TrendingUp, Sprout].map((Icon, idx) => (
             <div key={idx} className="flex flex-col gap-4 p-5 md:p-6 rounded-3xl hover:bg-slate-50 border border-transparent hover:border-slate-100 group transition-all">
@@ -504,10 +531,10 @@ const SectionTech = ({ t }: any) => (
     <div className="max-w-[1600px] mx-auto px-6 md:px-12">
       <div className="flex flex-col lg:flex-row justify-between items-end mb-16 md:mb-20 gap-8 md:gap-12 fade-in">
         <div className="max-w-2xl">
-          <span className="text-green-600 font-black tracking-[0.3em] uppercase text-xs md:text-sm mb-6 block">{(t.tech as any).badge}</span>
-          <h2 className="text-4xl md:text-5xl lg:text-7xl font-serif leading-tight">{(t.tech as any).title} <span className="text-green-600 italic">{(t.tech as any).subtitle}</span></h2>
+          <span className="text-green-600 font-black tracking-[0.3em] uppercase text-xs md:text-sm mb-6 block">{t.tech?.badge || ''}</span>
+          <h2 className="text-4xl md:text-5xl lg:text-7xl font-serif leading-tight">{t.tech?.title || ''} <span className="text-green-600 italic">{t.tech?.subtitle || ''}</span></h2>
         </div>
-        <p className="text-slate-500 text-lg md:text-xl max-w-md lg:text-right font-light leading-relaxed">{(t.tech as any).desc}</p>
+        <p className="text-slate-500 text-lg md:text-xl max-w-md lg:text-right font-light leading-relaxed">{t.tech?.desc || ''}</p>
       </div>
       <div className="grid md:grid-cols-3 gap-8 md:gap-10">
         {[Tractor, Droplets, Microscope].map((Icon, idx) => (
@@ -526,14 +553,14 @@ const SectionFeatures = ({ t }: any) => (
   <section id="features" className="py-24 md:py-32 bg-green-950 text-white relative overflow-hidden">
     <div className="max-w-[1600px] mx-auto px-6 md:px-12 relative z-10">
       <div className="text-center max-w-4xl mx-auto mb-16 md:mb-24 fade-in">
-        <h2 className="text-4xl md:text-5xl lg:text-7xl font-serif mb-8 leading-tight">{(t.features as any).title}</h2>
+        <h2 className="text-4xl md:text-5xl lg:text-7xl font-serif mb-8 leading-tight">{t.features?.title || 'Features'}</h2>
         <div className="h-1 w-24 md:w-32 bg-green-500 mx-auto rounded-full"></div>
       </div>
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-10">
         {[{icon: CloudSun, key: 'weather'}, {icon: TrendingUp, key: 'market'}, {icon: Users, key: 'coop'}, {icon: ShieldCheck, key: 'insurance'}].map((item, idx) => (
           <div key={idx} className="fade-in border border-white/5 bg-white/[0.03] hover:bg-white/[0.08] backdrop-blur-md p-8 md:p-10 rounded-[2.5rem] transition-all group hover:-translate-y-2">
             <div className="w-14 h-14 md:w-16 md:h-16 bg-green-600/20 rounded-2xl flex items-center justify-center text-green-400 mb-8 group-hover:scale-110 group-hover:bg-green-500 transition-all shadow-lg"><item.icon className="w-8 h-8 md:w-9 md:h-9" /></div>
-            <h3 className="text-xl md:text-2xl font-black mb-4">{(t.features as any)[item.key]}</h3>
+            <h3 className="text-xl md:text-2xl font-black mb-4">{t.features?.[item.key] || item.key}</h3>
           </div>
         ))}
       </div>
@@ -577,7 +604,7 @@ const Navbar = ({ isLoggedIn, userProfile, onOpenAuth, onLogout, lang, setLang, 
                 className={`text-[9px] md:text-[10px] font-black tracking-widest uppercase transition-all hover:text-green-500 flex items-center gap-1.5 whitespace-nowrap ${scrolled ? 'text-slate-600' : 'text-slate-100'}`}
               >
                 <item.icon className="w-3.5 h-3.5" />
-                {(t.nav as any)[item.key]}
+                {t.nav?.[item.key] || item.key}
               </a>
             ))}
           </div>
@@ -599,8 +626,8 @@ const Navbar = ({ isLoggedIn, userProfile, onOpenAuth, onLogout, lang, setLang, 
 
             {!isLoggedIn ? (
               <div className="flex items-center gap-2">
-                <button onClick={() => onOpenAuth('login')} className="flex items-center gap-2 bg-white/10 border border-white/30 text-white px-5 py-2 rounded-xl text-[10px] font-black hover:bg-white/20 transition-all whitespace-nowrap"><LogIn className="w-3.5 h-3.5" />{t.nav.login}</button>
-                <button onClick={() => onOpenAuth('register')} className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-xl text-[10px] font-black shadow-lg hover:shadow-green-300/40 transition-all whitespace-nowrap"><UserPlus className="w-3.5 h-3.5" />{t.nav.register}</button>
+                <button onClick={() => onOpenAuth('login')} className="flex items-center gap-2 bg-white/10 border border-white/30 text-white px-5 py-2 rounded-xl text-[10px] font-black hover:bg-white/20 transition-all whitespace-nowrap"><LogIn className="w-3.5 h-3.5" />{t.nav?.login || 'Login'}</button>
+                <button onClick={() => onOpenAuth('register')} className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-xl text-[10px] font-black shadow-lg hover:shadow-green-300/40 transition-all whitespace-nowrap"><UserPlus className="w-3.5 h-3.5" />{t.nav?.register || 'Register'}</button>
               </div>
             ) : (
               <div className="flex items-center gap-3">
@@ -608,7 +635,7 @@ const Navbar = ({ isLoggedIn, userProfile, onOpenAuth, onLogout, lang, setLang, 
                   <div className="w-5 h-5 rounded-full bg-green-600 flex items-center justify-center text-white"><User className="w-3 h-3" /></div>
                   <span className="text-[9px] font-black uppercase tracking-wider max-w-[80px] truncate">{userProfile?.name || 'Farmer'}</span>
                 </div>
-                <button onClick={onLogout} className={`flex items-center gap-1.5 font-black text-[10px] hover:text-red-600 transition-all ${scrolled ? 'text-slate-500' : 'text-white/70'}`}><LogOut className="w-3.5 h-3.5" />{t.nav.logout}</button>
+                <button onClick={onLogout} className={`flex items-center gap-1.5 font-black text-[10px] hover:text-red-600 transition-all ${scrolled ? 'text-slate-500' : 'text-white/70'}`}><LogOut className="w-3.5 h-3.5" />{t.nav?.logout || 'Logout'}</button>
               </div>
             )}
           </div>
@@ -619,14 +646,14 @@ const Navbar = ({ isLoggedIn, userProfile, onOpenAuth, onLogout, lang, setLang, 
 
       {isOpen && (
         <div className="xl:hidden bg-white border-b absolute w-full left-0 p-6 space-y-6 shadow-2xl animate-fadeIn overflow-y-auto max-h-[80vh]">
-          {navItems.map((item) => <a key={item.key} href={`#${item.key}`} className="flex items-center gap-3 text-slate-800 font-black text-xs uppercase py-2" onClick={() => setIsOpen(false)}><item.icon className="w-5 h-5" />{(t.nav as any)[item.key]}</a>)}
+          {navItems.map((item) => <a key={item.key} href={`#${item.key}`} className="flex items-center gap-3 text-slate-800 font-black text-xs uppercase py-2" onClick={() => setIsOpen(false)}><item.icon className="w-5 h-5" />{t.nav?.[item.key] || item.key}</a>)}
           {!isLoggedIn ? (
             <div className="space-y-3">
-              <button onClick={() => {onOpenAuth('login'); setIsOpen(false)}} className="w-full bg-slate-100 text-slate-900 py-4 rounded-2xl font-black text-lg flex items-center justify-center gap-3"><LogIn className="w-6 h-6" /> {t.nav.login}</button>
-              <button onClick={() => {onOpenAuth('register'); setIsOpen(false)}} className="w-full bg-green-600 text-white py-4 rounded-2xl font-black text-lg flex items-center justify-center gap-3"><UserPlus className="w-6 h-6" /> {t.nav.register}</button>
+              <button onClick={() => {onOpenAuth('login'); setIsOpen(false)}} className="w-full bg-slate-100 text-slate-900 py-4 rounded-2xl font-black text-lg flex items-center justify-center gap-3"><LogIn className="w-6 h-6" /> {t.nav?.login || 'Login'}</button>
+              <button onClick={() => {onOpenAuth('register'); setIsOpen(false)}} className="w-full bg-green-600 text-white py-4 rounded-2xl font-black text-lg flex items-center justify-center gap-3"><UserPlus className="w-6 h-6" /> {t.nav?.register || 'Register'}</button>
             </div>
           ) : (
-            <button onClick={() => {onLogout(); setIsOpen(false)}} className="w-full bg-red-50 text-red-600 py-4 rounded-2xl font-black text-lg flex items-center justify-center gap-3"><LogOut className="w-6 h-6" /> {t.nav.logout}</button>
+            <button onClick={() => {onLogout(); setIsOpen(false)}} className="w-full bg-red-50 text-red-600 py-4 rounded-2xl font-black text-lg flex items-center justify-center gap-3"><LogOut className="w-6 h-6" /> {t.nav?.logout || 'Logout'}</button>
           )}
         </div>
       )}
@@ -639,25 +666,24 @@ const Navbar = ({ isLoggedIn, userProfile, onOpenAuth, onLogout, lang, setLang, 
 const App: React.FC = () => {
   useScrollReveal();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isChatOpen, setIsChatOpen] = useState(false);
   const [authModal, setAuthModal] = useState<{isOpen: boolean, mode: 'login' | 'register'}>({isOpen: false, mode: 'login'});
   const [lang, setLang] = useState<string>('en');
   const [userProfile, setUserProfile] = useState<any>(null);
 
-  const t = (translations as any)[lang] || translations.en;
+  const t = translations[lang] || translations.en;
 
   useEffect(() => {
-    onAuthStateChanged(auth, async (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         const userDoc = await getDoc(doc(db, 'users', user.uid));
         if (userDoc.exists()) {
           setUserProfile(userDoc.data());
           setIsLoggedIn(true);
         } else {
-          // Trigger registration profile setup if user exists in Auth but not in Firestore
-          // and they aren't already in the middle of a flow in the modal
-          if (!authModal.isOpen) {
-            setAuthModal({ isOpen: true, mode: 'register' });
+          if (!authModal.isOpen || authModal.mode !== 'register') {
+             await signOut(auth);
+             setIsLoggedIn(false);
+             setUserProfile(null);
           }
         }
       } else {
@@ -665,7 +691,8 @@ const App: React.FC = () => {
         setUserProfile(null);
       }
     });
-  }, []);
+    return () => unsubscribe();
+  }, [authModal.isOpen, authModal.mode]);
 
   const handleAuthSuccess = (profile: any) => {
     setUserProfile(profile);
@@ -677,7 +704,6 @@ const App: React.FC = () => {
     await signOut(auth);
     setIsLoggedIn(false);
     setUserProfile(null);
-    setIsChatOpen(false);
   };
 
   return (
@@ -729,8 +755,8 @@ const App: React.FC = () => {
             <User className="w-6 h-6 md:w-7 md:h-7" />
           </div>
           <div>
-            <p className="text-base md:text-lg font-black text-slate-800">{(t.toast as any).welcome}, {userProfile?.name?.split(' ')[0]}!</p>
-            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{(t.toast as any).status}</p>
+            <p className="text-base md:text-lg font-black text-slate-800">{(t.toast?.welcome || 'Welcome')}, {userProfile?.name?.split(' ')[0]}!</p>
+            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{(t.toast?.status || 'Verified')}</p>
           </div>
         </div>
       )}
