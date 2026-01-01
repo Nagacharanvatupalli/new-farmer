@@ -4,7 +4,8 @@ import {
   Leaf, Sprout, CloudSun, TrendingUp, ShieldCheck, Users, MapPin, 
   Phone, Mail, ChevronRight, Menu, X, Tractor, Droplets, Microscope, 
   LogIn, LogOut, MessageCircle, Send, User, Globe, CheckCircle2, 
-  Wheat, Building2, LayoutDashboard, Search, UserPlus
+  Wheat, Building2, LayoutDashboard, Search, UserPlus, Info, 
+  Sparkles, Thermometer, Wind, Droplet, ArrowRight
 } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
 import { 
@@ -20,6 +21,7 @@ import {
   setDoc, 
   getDoc 
 } from 'firebase/firestore';
+import { GoogleGenAI } from "@google/genai";
 
 // --- Firebase Config ---
 const firebaseConfig = {
@@ -37,217 +39,437 @@ const db = getFirestore(app);
 
 // --- Extended Indian Location Data ---
 const locationData: any = {
-  "Andhra Pradesh": {
-    districts: {
-      "Guntur": ["Guntur Mandal 1", "Guntur Mandal 2", "Other"],
-      "Krishna": ["Vijayawada", "Machilipatnam", "Nuzvid", "Other"],
-      "Visakhapatnam": ["Visakhapatnam Urban", "Visakhapatnam Rural", "Gajuwaka", "Other"],
-      "Anantapur": ["Anantapur", "Dharmavaram", "Guntakal", "Other"],
-      "Other": ["Other"]
-    }
-  },
-  "Telangana": {
-    districts: {
-      "Hyderabad": ["Ameerpet", "Madhapur", "Kukatpally", "Secunderabad", "Other"],
-      "Warangal": ["Warangal Urban", "Warangal Rural", "Hanamkonda", "Other"],
-      "Khammam": ["Khammam", "Wyra", "Sathupally", "Other"],
-      "Nizamabad": ["Nizamabad", "Armur", "Bodhan", "Other"],
-      "Other": ["Other"]
-    }
-  },
-  "Karnataka": {
-    districts: {
-      "Bangalore": ["Bangalore North", "Bangalore South", "Bangalore East", "Other"],
-      "Mysore": ["Mysore", "Hunsur", "Nanjangud", "Other"],
-      "Belagavi": ["Belagavi", "Gokak", "Chikkodi", "Other"],
-      "Other": ["Other"]
-    }
-  },
-  "Tamil Nadu": {
-    districts: {
-      "Chennai": ["Chennai Central", "Chennai North", "Chennai South", "Other"],
-      "Coimbatore": ["Coimbatore North", "Coimbatore South", "Pollachi", "Other"],
-      "Madurai": ["Madurai North", "Madurai South", "Other"],
-      "Other": ["Other"]
-    }
-  },
-  "Other": {
-    districts: {
-      "Other": ["Other"]
-    }
-  }
+  "Andhra Pradesh": { districts: { "Guntur": ["Guntur 1", "Guntur 2"], "Krishna": ["Vijayawada", "Machilipatnam"], "Other": ["Other"] } },
+  "Telangana": { districts: { "Hyderabad": ["Madhapur", "Kukatpally"], "Warangal": ["Warangal"], "Other": ["Other"] } },
+  "Karnataka": { districts: { "Bangalore": ["North", "South"], "Mysore": ["Mysore"], "Other": ["Other"] } },
+  "Tamil Nadu": { districts: { "Chennai": ["Central", "South"], "Coimbatore": ["North"], "Other": ["Other"] } },
+  "Other": { districts: { "Other": ["Other"] } }
 };
 
 const cropOptions = ["Paddy", "Wheat", "Cotton", "Chilli", "Turmeric", "Maize", "Groundnut", "Tomato", "Onion", "Sugarcane", "Other"];
 
+// --- Fix for missing 'languages' error ---
+const languages = [
+  { code: 'en', name: 'English' },
+  { code: 'hi', name: 'हिन्दी' },
+  { code: 'te', name: 'తెలుగు' },
+  { code: 'ta', name: 'தமிழ்' },
+  { code: 'kn', name: 'ಕನ್ನಡ' }
+];
+
 // --- Translations ---
 const translations: any = {
   en: {
-    nav: { home: 'Home', cropDetails: 'Crops', weather: 'Weather', dashboard: 'Dashboard', suggestions: 'Suggestions', login: 'Login', register: 'Register', logout: 'Logout' },
+    nav: { home: 'Home', crops: 'Crops', weather: 'Weather', dashboard: 'Dashboard', suggestions: 'AI Advice', login: 'Login', register: 'Register', logout: 'Logout' },
     hero: { badge: 'Empowering Indian Agriculture', title: 'Cultivate the Future Today', desc: 'KisanPortal is the definitive ecosystem for modern growers. We bridge legacy farming wisdom with state-of-the-art analytics.', join: 'Join the Network', explore: 'Explore Services' },
-    importance: { badge: 'The Backbone of Earth', title: 'Feeding Nations, Building Futures', desc: 'Every revolution in human history started with a surplus of food. KisanPortal honors this legacy by providing digital armor for guardians of the soil.', quote: 'Farmers are the only essential workers that create something out of nothing but a seed and hard work.' },
+    importance: { badge: 'The Backbone of Earth', title: 'Feeding Nations, Building Futures', desc: 'Every revolution in human history started with a surplus of food. KisanPortal honors this legacy.', quote: 'Farmers are the only essential workers that create something out of nothing but a seed and hard work.' },
     tech: { badge: 'The Digital Harvest', title: 'High-Tech Solutions', subtitle: 'Deep-Rooted Traditions', desc: 'Harnessing the power of AI and IoT to create a sustainable agricultural future.' },
     features: { title: 'Everything You Need To Thrive', weather: 'Satellite Weather', market: 'Market Analytics', coop: 'Cooperative Lab', insurance: 'Smart Insurance' },
     auth: {
       titleLogin: 'Sign In', titleRegister: 'Create Account', subtitle: 'Secure access to KisanPortal', phone: 'Phone Number', phonePlaceholder: '98765 43210', sendOtp: 'Get OTP', otp: 'Enter 6-digit OTP', verify: 'Verify & Proceed',
       profile: 'Farmer Profile Information', name: 'Your Full Name', state: 'State', district: 'District', mandal: 'Mandal', crop: 'Primary Crop', otherCrop: 'Specify Crop', otherLocation: 'Specify Location',
-      submit: 'Complete Registration', back: 'Go Back', switchLogin: 'Already a member? Login', switchRegister: 'New to KisanPortal? Register',
-      error: 'Authentication failed. Please try again.', userNotFound: 'No profile found for this number. Please Register.', userExists: 'Account already exists for this number. Please Login.'
+      submit: 'Complete Registration', back: 'Go Back', switchLogin: 'Already a member? Login', switchRegister: 'New? Register',
+      error: 'Authentication failed.', userNotFound: 'Profile not found. Please Register.', userExists: 'Account exists. Please Login.'
     },
+    weatherView: { title: 'Agri-Weather Forecast', desc: 'Get AI-powered weather insights tailored for your crops.', search: 'Get Forecast' },
+    cropsView: { title: 'Crop Catalog', desc: 'Explore detailed information about diverse Indian crops.', search: 'Search crops...' },
+    suggestionsView: { title: 'Ask Kisan AI', desc: 'Personalized farming strategies generated by Gemini AI.', ask: 'Get AI Strategy', placeholder: 'e.g. How to improve yield for Turmeric in black soil?' },
     toast: { welcome: 'Welcome back', status: 'Identity Verified' }
   },
   hi: {
-    nav: { home: 'मुख्य', cropDetails: 'फसल', weather: 'मौसम', dashboard: 'डैशबोर्ड', suggestions: 'सुझाव', login: 'लॉगिन', register: 'पंजीकरण', logout: 'लॉगआउट' },
-    hero: { badge: 'भारतीय कृषि का सशक्तिकরণ', title: 'आज ही भविष्य की खेती करें', desc: 'किसानपोर्टल आधुनिक उत्पादकों के लिए एक पारिस्थितिकी तंत्र है।' },
-    importance: { badge: 'पृथ्वी की रीढ़', title: 'राष्ट्रों को खिलाना, भविष्य का निर्माण', desc: 'मानव इतिहास में हर क्रांति खाद्य अधिशेष के साथ शुरू हुई।', quote: 'किसान ही एकमात्र आवश्यक कर्मचारी हैं जो केवल बीज और कड़ी मेहनत से कुछ भी बनाते हैं।' },
-    tech: { badge: 'डिजिटल फसल', title: 'हाई-टेक समाधान', subtitle: 'गहरी जड़ें वाली परंपराएं', desc: 'स्थायी कृषि भविष्य बनाने के लिए एआई और आईओटी का उपयोग करना।' },
-    features: { title: 'वह सब कुछ जो आपको फलने-फूलने के लिए चाहिए', weather: 'सैटेलाइट मौसम', market: 'बाजार विश्लेषण', coop: 'सहकारी लैब', insurance: 'स्मार्ट बीमा' },
-    auth: { titleLogin: 'लॉगिन करें', titleRegister: 'खाता बनाएं', subtitle: 'किसापोर्टल तक सुरक्षित पहुंच', phone: 'फ़ोन नंबर', phonePlaceholder: '98765 43210', sendOtp: 'ओटीपी प्राप्त करें', otp: '६-अंकों का ओटीपी दर्ज करें', verify: 'सत्यापित करें', profile: 'किसान प्रोफ़ाइल जानकारी', name: 'आपका पूरा नाम', state: 'राज्य', district: 'जिला', mandal: 'मंडल', crop: 'मुख्य फसल', otherCrop: 'फसल का नाम लिखें', otherLocation: 'स्थान लिखें', submit: 'पंजीकरण पूरा करें', back: 'वापस जाएं', switchLogin: 'पहले से सदस्य हैं? लॉगिन करें', switchRegister: 'नया खाता? पंजीकरण करें', error: 'सत्यापन विफल। फिर प्रयास करें।', userNotFound: 'इस नंबर के लिए कोई प्रोफ़ाइल नहीं मिली। कृपया पंजीकरण करें।', userExists: 'इस नंबर के लिए खाता पहले से मौजूद है। कृपया लॉगिन करें।' },
-    toast: { welcome: 'स्वागत है', status: 'पहचान सत्यापित' }
+    nav: { home: 'मुख्य', crops: 'फसलें', weather: 'मौसम', dashboard: 'डैशबोर्ड', suggestions: 'एआई सलाह', login: 'लॉगिन', register: 'पंजीकरण', logout: 'लॉगआउट' },
+    hero: { badge: 'भारतीय कृषि सशक्तिकरण', title: 'भविष्य की खेती आज', desc: 'किसापोर्टल आधुनिक उत्पादकों के लिए पारिस्थितिकी तंत्र है।' },
+    importance: { badge: 'पृथ्वी की रीढ़', title: 'राष्ट्रों को खिलाना', desc: 'मानव इतिहास की हर क्रांति भोजन की प्रचुरता से शुरू हुई।', quote: 'किसान ही वह अनिवार्य कार्यकर्ता हैं जो मेहनत से कुछ सृजित करते हैं।' },
+    tech: { badge: 'डिजिटल फसल', title: 'हाई-टेक समाधान', subtitle: 'परंपराएं', desc: 'एआई और आईओटी का उपयोग।' },
+    features: { title: 'वह सब कुछ जो आपको चाहिए', weather: 'मौसम', market: 'बाजार', coop: 'लैब', insurance: 'बीमा' },
+    auth: { titleLogin: 'लॉगिन', titleRegister: 'खाता बनाएं', subtitle: 'सुरक्षित पहुंच', phone: 'फ़ोन नंबर', phonePlaceholder: '98765 43210', sendOtp: 'ओटीपी प्राप्त करें', otp: 'ओटीपी दर्ज करें', verify: 'सत्यापित करें', profile: 'प्रोफ़ाइल', name: 'पूरा नाम', state: 'राज्य', district: 'जिला', mandal: 'मंडल', crop: 'फसल', submit: 'पूರಾ करें', back: 'वापस', switchLogin: 'लॉगिन करें', switchRegister: 'पंजीकरण करें', error: 'विफल रहा।', userNotFound: 'प्रोफ़ाइल नहीं मिली।', userExists: 'खाता पहले से है।' },
+    weatherView: { title: 'कृषि मौसम पूर्वानुमान', desc: 'अपनी फसलों के लिए एआई मौसम अंतर्दृष्टि प्राप्त करें।', search: 'पूर्वानुमान प्राप्त करें' },
+    cropsView: { title: 'फसल सूची', desc: 'भारतीय फसलों के बारे में विस्तृत जानकारी प्राप्त करें।', search: 'फसल खोजें...' },
+    suggestionsView: { title: 'किसान एआई से पूछें', desc: 'जेमिनी एआई द्वारा उत्पन्न कृषि रणनीतियां।', ask: 'एआई रणनीति प्राप्त करें', placeholder: 'जैसे: काली मिट्टी में हल्दी की पैदावार कैसे बढ़ाएं?' },
+    toast: { welcome: 'स्वागत है', status: 'सत्यापित' }
   },
   te: {
-    nav: { home: 'హోమ్', cropDetails: 'పంటలు', weather: 'వాతావరణం', dashboard: 'డ్యాష్‌బోర్డ్', suggestions: 'సూచనలు', login: 'లాగిన్', register: 'రిజిస్టర్', logout: 'లాగ్అవుట్' },
-    hero: { badge: 'భారతీయ వ్యవసాయ సాధికారత', title: 'భవిష్యత్తును సాగు చేద్దాం', desc: 'కిసాన్ పోర్టల్ ఆధునిక రైతులకు ఒక అద్భుతమైన వేదిక.' },
-    importance: { badge: 'భూమికి వెన్నెముక', title: 'దేశాలకు ఆహారం, భవిష్యత్ నిర్మాణం', desc: 'మానవ చరిత్రలో ప్రతి విప్లవం ఆహార మిగులుతోనే ప్రారంభమైంది.', quote: 'రైతులు కేవలం విత్తనం మరియు కష్టంతో శూన్యం నుండి ఏదైనా సృష్టించే ఏకైక అవసరమైన కార్మికులు.' },
-    tech: { badge: 'డిజిటల్ హార్వెస్ట్', title: 'హై-టెక్ సొల్యూషన్స్', subtitle: 'లోతైన సంప్రదాయాలు', desc: 'స్థిరమైన వ్యవసాయ భవిష్యత్తును సృష్టించడానికి AI మరియు IoT శక్తిని ఉపయోగించడం.' },
-    features: { title: 'మీరు అభివృద్ధి చెందడానికి కావలసినవన్నీ', weather: 'వాతావరణం', market: 'మార్కెట్ అనలిటిక్స్', coop: 'కోఆపరేటివ్ ల్యాబ్', insurance: 'ఇన్సూరెన్స్' },
-    auth: { titleLogin: 'లాగిన్', titleRegister: 'ఖాతాను సృష్టించండి', subtitle: 'కిసాన్ పోర్టల్‌కు సురక్షిత ప్రవేశం', phone: 'ఫోన్ నంబర్', sendOtp: 'OTP పొందండి', verify: 'ధృవీకరించండి', profile: 'రైతు ప్రొఫైల్ సమాచారం', name: 'పూర్తి పేరు', state: 'రాష్ట్రం', district: 'జిల్లా', mandal: 'మండలం', crop: 'ప్రధాన పంట', submit: 'రిజిస్ట్రేషన్ పూర్తి చేయండి', back: 'వెనక్కి', switchLogin: 'ఖాతా ఉందా? లాగిన్ అవ్వండి', switchRegister: 'కొత్తవారా? రిజిస్టర్ అవ్వండి', error: 'ధృవీకరణ విఫలమైంది.', userNotFound: 'ప్రొఫైల్ కనుగొనబడలేదు. దయచేసి రిజిస్టర్ చేసుకోండి.', userExists: 'ఈ నంబర్‌తో ఇప్పటికే ఖాతా ఉంది. దయచేసి లాగిన్ అవ్వండి.' },
-    toast: { welcome: 'స్వాగతం', status: 'గుర్తింపు ధృవీకరించబడింది' }
+    nav: { home: 'హోమ్', crops: 'పంటలు', weather: 'వాతావరణం', dashboard: 'డ్యాష్‌బోర్డ్', suggestions: 'AI సలహా', login: 'లాగిన్', register: 'రిజిస్టర్', logout: 'లాగ్అవుట్' },
+    hero: { badge: 'భారతీయ వ్యవసాయ సాధికారత', title: 'భవిష్యత్తు సాగు నేడే', desc: 'కిసాన్ పోర్టల్ ఆధునిక రైతులకు ఒక అద్భుతమైన వేదిక.' },
+    importance: { badge: 'భూమికి వెన్నెముక', title: 'దేశానికి ఆహారం', desc: 'మానవ చరిత్రలో ప్రతి విప్లవం ఆహార మిగులుతోనే ప్రారంభమైంది.', quote: 'రైతులు శూన్యం నుండి ఏదైనా సృష్టించే ఏకైక అవసరమైన కార్మికులు.' },
+    tech: { badge: 'డిజిటల్ హార్వెస్ట్', title: 'హై-టెక్ సొల్యూషన్స్', subtitle: 'సంప్రదాయాలు', desc: 'AI మరియు IoT శక్తిని ఉపయోగించడం.' },
+    features: { title: 'మీకు కావలసినవన్నీ', weather: 'వాతావరణం', market: 'మార్కెట్', coop: 'ల్యాబ్', insurance: 'ఇన్సూరెన్స్' },
+    auth: { titleLogin: 'లాగిన్', titleRegister: 'రిజిస్టర్', subtitle: 'సురక్షిత ప్రవేశం', phone: 'ఫోన్ నంబర్', sendOtp: 'OTP పొందండి', verify: 'ధృవీకరించండి', profile: 'ప్రొఫైల్', name: 'పూర్తి పేరు', state: 'రాష్ట్రం', district: 'జిల్లా', mandal: 'మండలం', crop: 'పంట', submit: 'పూర్తి చేయండి', back: 'వెనక్కి', switchLogin: 'లాగిన్', switchRegister: 'రిజిస్టర్', error: 'విఫలమైంది.', userNotFound: 'ప్రొఫైల్ లేదు.', userExists: 'ఖాతా ఇప్పటికే ఉంది.' },
+    weatherView: { title: 'వ్యవసాయ వాతావరణ సూచన', desc: 'మీ పంటల కోసం AI ఆధారిత వాతావరణ సమాచారం.', search: 'సూచన పొందండి' },
+    cropsView: { title: 'పంటల జాబితా', desc: 'వివిధ భారతీయ పంటల గురించి సమాచారం.', search: 'పంటలను వెతకండి...' },
+    suggestionsView: { title: 'కిసాన్ AIని అడగండి', desc: 'Gemini AI ద్వారా వ్యక్తిగతీకరించిన వ్యవసాయ వ్యూహాలు.', ask: 'AI వ్యూహం పొందండి', placeholder: 'ఉదా: నల్ల రేగడి మట్టిలో పసుపు దిగుబడిని ఎలా పెంచాలి?' },
+    toast: { welcome: 'స్వాగతం', status: 'ధృవీకరించబడింది' }
   },
   ta: {
-    nav: { home: 'முகப்பு', cropDetails: 'பயிர்கள்', weather: 'வானிலை', dashboard: 'டாஷ்போர்டு', suggestions: 'பரிந்துரைகள்', login: 'உள்நுழை', register: 'பதிவு செய்', logout: 'வெளியேறு' },
-    hero: { badge: 'இந்திய விவசாய அதிகாரமளித்தல்', title: 'வருங்காலத்தை பயிரிடுவோம்', desc: 'கிசான் போர்ட்டல் நவீன விவசாயிகளுக்கான ஒரு சிறந்த தளமாகும்.' },
-    importance: { badge: 'பூமியின் முதுகெலும்பு', title: 'நாடுகளுக்கு உணவு, எதிர்காலத்தை உருவாக்குதல்', desc: 'மனித வரலாற்றில் ஒவ்வொரு புரட்சியும் உணவு உபரியுடன் தொடங்கியது.', quote: 'விவசாயிகள் மட்டுமே ஒரு விதையிலிருந்தும் கடின உழைப்பிலிருந்தும் எதையாவது உருவாக்கும் ஒரே அத்தியாவசிய தொழிலாளர்கள்.' },
-    tech: { badge: 'டிஜிட்டல் அறுவடை', title: 'உயர் தொழில்நுட்ப தீர்வுகள்', subtitle: 'ஆழ்ந்த மரபுகள்', desc: 'நிலையான விவசாய எதிர்காலத்தை உருவாக்க AI மற்றும் IoT சக்தியைப் பயன்படுத்துதல்.' },
-    features: { title: 'நீங்கள் செழிக்க வேண்டிய அனைத்தும்', weather: 'வானிலை', market: 'சந்தை பகுப்பாய்வு', coop: 'கூட்டுறவு ஆய்வகம்', insurance: 'காப்பீடு' },
-    auth: { titleLogin: 'உள்நுழை', titleRegister: 'கணக்கை உருவாக்கு', subtitle: 'கிசான் போர்ட்டலுக்கு பாதுகாப்பான அணுகல்', phone: 'தொலைபேசி எண்', sendOtp: 'OTP பெறு', verify: 'சரிபார்க்கவும்', profile: 'விவசாயி சுயவிவரத் தகவல்', name: 'முழு பெயர்', state: 'மாநிலம்', district: 'மாவட்டம்', mandal: 'மண்டலம்', crop: 'முதன்மை பயிர்', submit: 'பதிவை முடிக்கவும்', back: 'பின்னால்', switchLogin: 'கணக்கு உள்ளதா? உள்நுழையவும்', switchRegister: 'புதியவரா? பதிவு செய்யவும்', error: 'சரிபார்ப்பு தோல்வியடைந்தது.', userNotFound: 'சுயவிவரம் இல்லை. பதிவு செய்யவும்.', userExists: 'இந்த எண்ணில் ஏற்கனவே கணக்கு உள்ளது. உள்நுழையவும்.' },
-    toast: { welcome: 'வரவேற்கிறோம்', status: 'அடையாளம் சரிபார்க்கப்பட்டது' }
+    nav: { home: 'முகப்பு', crops: 'பயிர்கள்', weather: 'வானிலை', dashboard: 'டாஷ்போர்டு', suggestions: 'AI ஆலோசனை', login: 'உள்நுழை', register: 'பதிவு', logout: 'வெளியேறு' },
+    hero: { badge: 'இந்திய விவசாய அதிகாரமளித்தல்', title: 'வருங்கால பயிர் இன்று', desc: 'கிசான் போர்ட்டல் நவீன விவசாயிகளுக்கான ஒரு சிறந்த தளமாகும்.' },
+    importance: { badge: 'பூமியின் முதுகெலும்பு', title: 'நாடுகளுக்கு உணவு', desc: 'மனித வரலாற்றின் ஒவ்வொரு புரட்சியும் உணவு உபரியுடன் தொடங்கியது.', quote: 'விவசாயிகள் மட்டுமே கடின உழைப்பால் எதையாவது உருவாக்கும் அத்தியாவசிய தொழிலாளர்கள்.' },
+    tech: { badge: 'டிஜிட்டல் அறுவடை', title: 'உயர் தொழில்நுட்ப தீர்வுகள்', subtitle: 'மரபுகள்', desc: 'AI மற்றும் IoT பயன்பாடு.' },
+    features: { title: 'அனைத்து சேவைகளும்', weather: 'வானிலை', market: 'சந்தை', coop: 'ஆய்வகம்', insurance: 'காப்பீடு' },
+    auth: { titleLogin: 'உள்நுழை', titleRegister: 'பதிவு', subtitle: 'பாதுகாப்பான அணுகல்', phone: 'தொலைபேசி எண்', sendOtp: 'OTP பெறு', verify: 'சரிபார்க்கவும்', profile: 'சுயவிவரம்', name: 'பெயர்', state: 'மாநிலம்', district: 'மாவட்டம்', mandal: 'மண்டலம்', crop: 'பயிர்', submit: 'முடிக்கவும்', back: 'பின்னால்', switchLogin: 'உள்நுழை', switchRegister: 'பதிவு செய்', error: 'தோல்வியடைந்தது.', userNotFound: 'சுயவிவரம் இல்லை.', userExists: 'கணக்கு உள்ளது.' },
+    weatherView: { title: 'விவசாய வானிலை முன்னறிவிப்பு', desc: 'பயிர்களுக்கான AI வானிலை நுண்ணறிவு.', search: 'முன்னறிவிப்பு பெறு' },
+    cropsView: { title: 'பயிர் பட்டியல்', desc: 'இந்திய பயிர்கள் பற்றிய விரிவான தகவல்.', search: 'பயிர்களைத் தேடுங்கள்...' },
+    suggestionsView: { title: 'கிசான் AI-யிடம் கேளுங்கள்', desc: 'Gemini AI மூலம் விவசாய உத்திகள்.', ask: 'AI உத்தி பெறு', placeholder: 'உதாரணமாக: மஞ்சள் விளைச்சலை மேம்படுத்துவது எப்படி?' },
+    toast: { welcome: 'வரவேற்கிறோம்', status: 'சரிபார்க்கப்பட்டது' }
   },
   kn: {
-    nav: { home: 'ಮುಖಪುಟ', cropDetails: 'ಬೆಳೆಗಳು', weather: 'ಹವಾಮಾನ', dashboard: 'ಡ್ಯಾಶ್‌ಬೋರ್ಡ್', suggestions: 'ಸಲಹೆಗಳು', login: 'ಲಾಗಿನ್', register: 'ನೋಂದಣಿ', logout: 'ಲಾಗ್‌ಔಟ್' },
-    hero: { badge: 'ಭಾರತೀಯ ಕೃಷಿ ಸಬಲೀಕರಣ', title: 'ಭವಿಷ್ಯವನ್ನು ಬೆಳೆಸೋಣ', desc: 'ಕಿಸಾನ್ ಪೋರ್ಟಲ್ ಆಧುನಿಕ ರೈತರಿಗಾಗಿ ಒಂದು ಉತ್ತಮ ವೇದಿಕೆಯಾಗಿದೆ.' },
-    importance: { badge: 'ಭೂಮಿಯ ಬೆನ್ನೆಲುಬು', title: 'ದೇಶಗಳಿಗೆ ಆಹಾರ, ಭವಿಷ್ಯದ ನಿರ್ಮಾಣ', desc: 'ಮಾನವ ಇತಿಹಾಸದ ಪ್ರತಿಯೊಂದು ಕ್ರಾಂತಿಯು ಆಹಾರದ ಮಿಗುತೆಯೊಂದಿಗೆ ಪ್ರಾರಂಭವಾಯಿತು.', quote: 'ರೈತರು ಕೇವಲ ಬೀಜ ಮತ್ತು ಕಠಿಣ ಪರಿಶ್ರಮದಿಂದ ಶೂನ್ಯದಿಂದ ಏನನ್ನಾದರೂ ಸೃಷ್ಟಿಸುವ ಏಕೈಕ ಅಗತ್ಯ ಕೆಲಸಗಾರರು.' },
-    tech: { badge: 'ಡಿಜಿಟಲ್ ಹಾರ್ವೆಸ್ಟ್', title: 'ಹೈ-ಟೆಕ್ ಪರಿಹಾರಗಳು', subtitle: 'ಆಳವಾದ ಸಂಪ್ರದಾಯಗಳು', desc: 'ಸುಸ್ಥಿರ ಕೃಷಿ ಭವಿಷ್ಯವನ್ನು ಸೃಷ್ಟಿಸಲು AI ಮತ್ತು IoT ಶಕ್ತಿಯನ್ನು ಬಳಸುವುದು.' },
-    features: { title: 'ನೀವು ಅಭಿವೃದ್ಧಿ ಹೊಂದಲು ಬೇಕಾದ ಎಲ್ಲವೂ', weather: 'ಹವಾಮಾನ', market: 'ಮಾರುಕಟ್ಟೆ ವಿಶ್ಲೇಷಣೆ', coop: 'ಸಹಕಾರಿ ಪ್ರಯೋಗಾಲಯ', insurance: 'ವಿಮೆ' },
-    auth: { titleLogin: 'ಲಾಗಿನ್', titleRegister: 'ಖಾತೆ ತೆರೆಯಿರಿ', subtitle: 'ಕಿಸಾನ್ ಪೋರ್ಟಲ್‌ಗೆ ಸುರಕ್ಷಿತ ಪ್ರವೇಶ', phone: 'ಫೋನ್ ಸಂಖ್ಯೆ', sendOtp: 'OTP ಪಡೆಯಿರಿ', verify: 'ದೃಢೀಕರಿಸಿ', profile: 'ರೈತರ ಪ್ರೊಫೈಲ್ ಮಾಹಿತಿ', name: 'ಪೂರ್ಣ ಹೆಸರು', state: 'ರಾಜ್ಯ', district: 'ಜಿಲ್ಲೆ', mandal: 'ಮಂಡಲ', crop: 'ಮುಖ್ಯ ಬೆಳೆ', submit: 'ನೋಂದಣಿ ಪೂರ್ಣಗೊಳಿಸಿ', back: 'ಹಿಂದಕ್ಕೆ', switchLogin: 'ಖಾತೆ ಇದೆಯೇ? ಲಾಗಿನ್ ಆಗಿ', switchRegister: 'ಹೊಸಬರೇ? ನೋಂದಾಯಿಸಿ', error: 'ದೃಢೀಕರಣ ವಿಫಲವಾಗಿದೆ.', userNotFound: 'ಪ್ರೊಫೈಲ್ ಕಂಡುಬಂದಿಲ್ಲ. ದಯವಿಟ್ಟು ನೋಂದಾಯಿಸಿ.', userExists: 'ಈ ಸಂಖ್ಯೆಯ ಖಾತೆ ಈಗಾಗಲೇ ಇದೆ. ಲಾಗಿನ್ ಆಗಿ.' },
-    toast: { welcome: 'ಸ್ವಾಗತ', status: 'ಗುರುತು ದೃಢೀಕರಿಸಲ್ಪಟ್ಟಿದೆ' }
+    nav: { home: 'ಮುಖಪುಟ', crops: 'ಬೆಳೆಗಳು', weather: 'ಹವಾಮಾನ', dashboard: 'ಡ್ಯಾಶ್‌ಬೋರ್ಡ್', suggestions: 'AI ಸಲಹೆ', login: 'ಲಾಗಿನ್', register: 'ನೋಂದಣಿ', logout: 'ಲಾಗ್‌ಔಟ್' },
+    hero: { badge: 'ಭಾರತೀಯ ಕೃಷಿ ಸಬಲೀಕರಣ', title: 'ಭವಿಷ್ಯದ ಬೆಳೆ ಇಂದು', desc: 'ಕಿಸಾನ್ ಪೋರ್ಟಲ್ ಆಧುನಿಕ ರೈತರಿಗಾಗಿ ಒಂದು ಉತ್ತಮ ವೇದಿಕೆಯಾಗಿದೆ.' },
+    importance: { badge: 'ಭೂಮಿಯ ಬೆನ್ನೆಲುಬು', title: 'ದೇಶಕ್ಕೆ ಆಹಾರ', desc: 'ಮಾನವ ಇತಿಹಾಸದ ಪ್ರತಿಯೊಂದು ಕ್ರಾಂತಿಯು ಆಹಾರದ ಮಿಗುತೆಯೊಂದಿಗೆ ಪ್ರಾರಂಭವಾಯಿತು.', quote: 'ರೈತರು ಕೇವಲ ಬೀಜ ಮತ್ತು ಶ್ರಮದಿಂದ ಸೃಷ್ಟಿಸುವ ಏಕೈಕ ಅಗತ್ಯ ಕೆಲಸಗಾರರು.' },
+    tech: { badge: 'ಡಿಜಿಟಲ್ ಹಾರ್ವೆಸ್ಟ್', title: 'ಹೈ-ಟೆಕ್ ಪರಿಹಾರಗಳು', subtitle: 'ಸಂಪ್ರದಾಯಗಳು', desc: 'AI ಮತ್ತು IoT ಶಕ್ತಿಯ ಬಳಕೆ.' },
+    features: { title: 'ಎಲ್ಲಾ ಸೇವೆಗಳು', weather: 'ಹವಾಮಾನ', market: 'ಮಾರುಕಟ್ಟೆ', coop: 'ಪ್ರಯೋಗಾಲಯ', insurance: 'ವಿಮೆ' },
+    auth: { titleLogin: 'ಲಾಗಿನ್', titleRegister: 'ನೋಂದಣಿ', subtitle: 'ಸುವ್ಯವಸ್ಥಿತ ಪ್ರವೇಶ', phone: 'ಫೋನ್ ಸಂಖ್ಯೆ', sendOtp: 'OTP ಪಡೆಯಿರಿ', verify: 'ದೃಢೀಕರಿಸಿ', profile: 'ಪ್ರೊಫೈಲ್', name: 'ಹೆಸರು', state: 'ರಾಜ್ಯ', district: 'ಜಿಲ್ಲೆ', mandal: 'ಮಂಡಲ', crop: 'ಬೆಳೆ', submit: 'ಪೂರ್ಣಗೊಳಿಸಿ', back: 'ಹಿಂದಕ್ಕೆ', switchLogin: 'ಲಾಗಿನ್', switchRegister: 'ನೋಂದಣಿ', error: 'ವಿಫಲವಾಗಿದೆ.', userNotFound: 'ಪ್ರೊಫೈಲ್ ಇಲ್ಲ.', userExists: 'ಖಾತೆ ಈಗಾಗಲೇ ಇದೆ.' },
+    weatherView: { title: 'ಕೃಷಿ ಹವಾಮಾನ ಮುನ್ಸೂಚನೆ', desc: 'ಬೆಳೆಗಳಿಗಾಗಿ AI ಹವಾಮಾನ ಒಳನೋಟಗಳು.', search: 'ಮುನ್ಸೂಚನೆ ಪಡೆಯಿರಿ' },
+    cropsView: { title: 'ಬೆಳೆಗಳ ಪಟ್ಟಿ', desc: 'ವಿವಿಧ ಬೆಳೆಗಳ ಬಗ್ಗೆ ಮಾಹಿತಿ.', search: 'ಬೆಳೆ ಹುಡುಕಿ...' },
+    suggestionsView: { title: 'ಕಿಸಾನ್ AI ಕೇಳಿ', desc: 'Gemini AI ಮೂಲಕ ಕೃಷಿ ಸಲಹೆಗಳು.', ask: 'AI ಸಲಹೆ ಪಡೆಯಿರಿ', placeholder: 'ಉದಾ: ಕಪ್ಪು ಮಣ್ಣಿನಲ್ಲಿ ಅರಿಶಿನ ಇಳುವರಿ ಸುಧಾರಿಸುವುದು ಹೇಗೆ?' },
+    toast: { welcome: 'ಸ್ವಾಗತ', status: 'ದೃಢೀಕರಿಸಲ್ಪಟ್ಟಿದೆ' }
   }
 };
 
-const languages = [
-  { code: 'en', name: 'English' },
-  { code: 'hi', name: 'हिंदी' },
-  { code: 'te', name: 'తెలుగు' },
-  { code: 'ta', name: 'தமிழ்' },
-  { code: 'kn', name: 'ಕನ್ನಡ' },
-];
+// --- View Components ---
 
-// --- Authentication Modal ---
+const DashboardView = ({ userProfile, t, onViewChange }: any) => (
+  <div className="pt-32 pb-24 max-w-[1600px] mx-auto px-6 animate-fadeIn">
+    <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6">
+      <div>
+        <h2 className="text-4xl md:text-5xl font-serif text-slate-900 mb-4">{t.nav.dashboard}</h2>
+        <p className="text-slate-500 font-light text-lg">Welcome to your central control hub, {userProfile?.name}.</p>
+      </div>
+      <div className="flex gap-4">
+        <button onClick={() => onViewChange('suggestions')} className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-green-200 transition-all">
+          <Sparkles className="w-5 h-5" /> Get AI Strategy
+        </button>
+      </div>
+    </div>
 
-const AuthModal = ({ isOpen, onClose, lang, t, onAuthSuccess, initialMode = 'login' }: any) => {
-  const [mode, setMode] = useState(initialMode); 
-  const [step, setStep] = useState('phone'); 
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [otp, setOtp] = useState('');
-  const [error, setError] = useState('');
+    <div className="grid md:grid-cols-4 gap-6 mb-12">
+      {[
+        { icon: Wheat, label: 'Primary Crop', value: userProfile?.crop, color: 'text-amber-600', bg: 'bg-amber-50' },
+        { icon: MapPin, label: 'Location', value: `${userProfile?.mandal}, ${userProfile?.district}`, color: 'text-blue-600', bg: 'bg-blue-50' },
+        { icon: Calendar, label: 'Member Since', value: new Date(userProfile?.createdAt).toLocaleDateString(), color: 'text-purple-600', bg: 'bg-purple-50' },
+        { icon: ShieldCheck, label: 'Account Status', value: 'Verified', color: 'text-green-600', bg: 'bg-green-50' }
+      ].map((stat: any, i) => (
+        <div key={i} className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 flex items-center gap-4">
+          <div className={`p-4 rounded-2xl ${stat.bg} ${stat.color}`}><stat.icon className="w-6 h-6" /></div>
+          <div>
+            <p className="text-xs font-black uppercase tracking-wider text-slate-400 mb-1">{stat.label}</p>
+            <p className="font-black text-slate-900 truncate max-w-[150px]">{stat.value}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <div className="grid lg:grid-cols-3 gap-8">
+      <div className="lg:col-span-2 bg-white rounded-[2.5rem] border border-slate-100 p-8 shadow-sm">
+        <h3 className="text-xl font-black text-slate-900 mb-6 flex items-center gap-2"><Tractor className="w-6 h-6 text-green-600" /> Recent Farm Insights</h3>
+        <div className="space-y-4">
+          {[1,2,3].map(i => (
+            <div key={i} className="p-4 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-between group cursor-pointer hover:bg-white hover:shadow-md transition-all">
+              <div className="flex items-center gap-4">
+                <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                <p className="font-bold text-slate-700">Market price update for {userProfile?.crop}</p>
+              </div>
+              <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-green-600 transition-colors" />
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="bg-green-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden group">
+        <Sparkles className="absolute -top-4 -right-4 w-24 h-24 text-white/10 group-hover:rotate-45 transition-transform duration-700" />
+        <h3 className="text-xl font-black mb-4">Precision Suggestion</h3>
+        <p className="text-white/70 mb-8 font-light leading-relaxed">Based on your location in {userProfile?.district}, it's the ideal time to check soil moisture for {userProfile?.crop}.</p>
+        <button onClick={() => onViewChange('weather')} className="w-full bg-white text-green-900 py-4 rounded-2xl font-black hover:bg-green-50 transition-all">Check Weather Outlook</button>
+      </div>
+    </div>
+  </div>
+);
+
+const WeatherView = ({ t }: any) => {
+  const [city, setCity] = useState('');
+  const [forecast, setForecast] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [confirmationResult, setConfirmationResult] = useState<any>(null);
-  
-  const [profile, setProfile] = useState({ 
-    name: '', state: '', district: '', mandal: '', crop: '',
-    otherState: '', otherDistrict: '', otherMandal: '', otherCrop: ''
-  });
 
-  const recaptchaVerifierRef = useRef<any>(null);
-
-  useEffect(() => {
-    if (isOpen && !recaptchaVerifierRef.current) {
-      recaptchaVerifierRef.current = new RecaptchaVerifier(auth, 'recaptcha-container', {
-        size: 'invisible'
+  const getAiForecast = async () => {
+    if (!city) return;
+    setLoading(true);
+    try {
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const prompt = `Act as an expert agricultural meteorologist. Provide a detailed, easy-to-read agricultural weather outlook for farmers in ${city}, India. Mention Temperature, Rainfall probability, Humidity, and a piece of specific advice for local crops like Paddy or Cotton. Keep it professional and helpful.`;
+      const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: prompt,
       });
+      setForecast(response.text || "Could not generate forecast.");
+    } catch (e) {
+      setForecast("Error fetching forecast. Please try again later.");
     }
-  }, [isOpen]);
+    setLoading(false);
+  };
+
+  return (
+    <div className="pt-32 pb-24 max-w-5xl mx-auto px-6 animate-fadeIn">
+      <div className="text-center mb-16">
+        <h2 className="text-4xl md:text-5xl font-serif text-slate-900 mb-4">{t.weatherView.title}</h2>
+        <p className="text-slate-500 font-light text-lg">{t.weatherView.desc}</p>
+      </div>
+
+      <div className="bg-white rounded-[2.5rem] border border-slate-100 p-8 md:p-12 shadow-sm mb-12">
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="relative flex-1">
+            <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 w-5 h-5" />
+            <input 
+              type="text" 
+              placeholder="Enter City/Region..." 
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+              className="w-full bg-slate-50 border-2 border-slate-100 py-4 pl-12 pr-4 rounded-2xl focus:border-green-500 outline-none font-bold"
+            />
+          </div>
+          <button 
+            onClick={getAiForecast}
+            disabled={loading}
+            className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-2xl font-black shadow-xl shadow-green-200 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+          >
+            {loading ? 'Consulting AI...' : <><CloudSun className="w-5 h-5" /> {t.weatherView.search}</>}
+          </button>
+        </div>
+
+        {forecast && (
+          <div className="mt-12 p-8 bg-green-50 rounded-[2rem] border border-green-100 animate-fadeIn">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-3 bg-green-600 rounded-xl text-white"><Thermometer className="w-5 h-5" /></div>
+              <h3 className="text-xl font-black text-green-900">AI Weather Outlook</h3>
+            </div>
+            <div className="prose prose-green max-w-none text-slate-700 leading-relaxed font-light whitespace-pre-wrap">
+              {forecast}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="grid md:grid-cols-3 gap-6">
+        {[
+          { icon: Wind, label: 'Wind Speed', value: '-- km/h' },
+          { icon: Droplet, label: 'Rain Chance', value: '-- %' },
+          { icon: Thermometer, label: 'UV Index', value: 'Moderate' }
+        ].map((item, i) => (
+          <div key={i} className="bg-white p-6 rounded-3xl border border-slate-100 flex flex-col items-center text-center">
+            <item.icon className="w-8 h-8 text-green-600 mb-3" />
+            <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{item.label}</p>
+            <p className="text-lg font-black text-slate-900">{item.value}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const CropsView = ({ t }: any) => {
+  const crops = [
+    { name: 'Paddy', season: 'Kharif', water: 'High', image: 'https://images.unsplash.com/photo-1536633100230-0196881c6204?auto=format&fit=crop&q=80&w=600' },
+    { name: 'Wheat', season: 'Rabi', water: 'Moderate', image: 'https://images.unsplash.com/photo-1501436510557-619149711750?auto=format&fit=crop&q=80&w=600' },
+    { name: 'Sugarcane', season: 'Annual', water: 'Extreme', image: 'https://images.unsplash.com/photo-1594411133202-e2d96c8d3202?auto=format&fit=crop&q=80&w=600' },
+    { name: 'Cotton', season: 'Kharif', water: 'Moderate', image: 'https://images.unsplash.com/photo-1594901851502-0e86a0668b8e?auto=format&fit=crop&q=80&w=600' }
+  ];
+
+  return (
+    <div className="pt-32 pb-24 max-w-[1600px] mx-auto px-6 animate-fadeIn">
+      <div className="text-center mb-16">
+        <h2 className="text-4xl md:text-5xl font-serif text-slate-900 mb-4">{t.cropsView.title}</h2>
+        <p className="text-slate-500 font-light text-lg">{t.cropsView.desc}</p>
+      </div>
+
+      <div className="max-w-xl mx-auto mb-16">
+        <div className="relative">
+          <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 w-5 h-5" />
+          <input type="text" placeholder={t.cropsView.search} className="w-full bg-white border border-slate-200 py-4 pl-14 pr-4 rounded-full shadow-sm focus:ring-2 focus:ring-green-500/20 outline-none font-bold" />
+        </div>
+      </div>
+
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        {crops.map((crop, i) => (
+          <div key={i} className="group bg-white rounded-[2rem] overflow-hidden border border-slate-100 shadow-sm hover:shadow-2xl transition-all hover:-translate-y-2">
+            <div className="aspect-[4/3] overflow-hidden">
+              <img src={crop.image} alt={crop.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+            </div>
+            <div className="p-6">
+              <h3 className="text-xl font-black text-slate-900 mb-3">{crop.name}</h3>
+              <div className="flex flex-wrap gap-2">
+                <span className="px-3 py-1 bg-green-50 text-green-700 text-[10px] font-black uppercase rounded-full">{crop.season}</span>
+                <span className="px-3 py-1 bg-blue-50 text-blue-700 text-[10px] font-black uppercase rounded-full">Water: {crop.water}</span>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const SuggestionsView = ({ userProfile, t }: any) => {
+  const [query, setQuery] = useState('');
+  const [suggestion, setSuggestion] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const getAiSuggestion = async () => {
+    setLoading(true);
+    try {
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const prompt = `Act as an advanced agricultural scientist and AI farming advisor. 
+        User Context: 
+        - Name: ${userProfile?.name}
+        - Primary Crop: ${userProfile?.crop}
+        - Location: ${userProfile?.mandal}, ${userProfile?.district}, India.
+        
+        Question: ${query || `Provide a monthly strategy for my ${userProfile?.crop} farm.`}
+        
+        Provide professional, detailed, and actionable advice. Use bullet points for readability.`;
+        
+      const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: prompt,
+      });
+      setSuggestion(response.text || "No advice received.");
+    } catch (e) {
+      setSuggestion("Consultation error. Check your connection.");
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div className="pt-32 pb-24 max-w-5xl mx-auto px-6 animate-fadeIn">
+      <div className="text-center mb-16">
+        <h2 className="text-4xl md:text-5xl font-serif text-slate-900 mb-4">{t.suggestionsView.title}</h2>
+        <p className="text-slate-500 font-light text-lg">{t.suggestionsView.desc}</p>
+      </div>
+
+      <div className="bg-white rounded-[3rem] border-2 border-green-100 p-8 md:p-12 shadow-2xl mb-12 relative">
+        <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-green-600 text-white p-5 rounded-3xl shadow-xl shadow-green-200">
+          <Sparkles className="w-8 h-8" />
+        </div>
+        
+        <div className="space-y-6 pt-4">
+          <textarea 
+            rows={4}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={t.suggestionsView.placeholder}
+            className="w-full bg-slate-50 border-2 border-slate-100 p-6 rounded-[2rem] focus:border-green-500 outline-none font-bold text-slate-700 resize-none"
+          />
+          <button 
+            onClick={getAiSuggestion}
+            disabled={loading}
+            className="w-full bg-green-600 hover:bg-green-700 text-white py-5 rounded-2xl font-black text-xl shadow-2xl shadow-green-200 transition-all flex items-center justify-center gap-4 disabled:opacity-50"
+          >
+            {loading ? 'AI Thinking...' : <><Sparkles className="w-6 h-6" /> {t.suggestionsView.ask}</>}
+          </button>
+        </div>
+
+        {suggestion && (
+          <div className="mt-12 p-8 bg-slate-900 text-white rounded-[2.5rem] animate-fadeIn">
+            <div className="flex justify-between items-center mb-6">
+              <span className="text-green-400 font-black uppercase text-xs tracking-widest">KisanPortal AI Advisor</span>
+              <div className="flex gap-2">
+                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                <div className="w-2 h-2 rounded-full bg-green-500/50"></div>
+              </div>
+            </div>
+            <div className="prose prose-invert max-w-none font-light leading-relaxed whitespace-pre-wrap">
+              {suggestion}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// --- Fix for missing 'AuthModal' error ---
+const AuthModal = ({ isOpen, initialMode, onClose, lang, t, onAuthSuccess }: any) => {
+  const [mode, setMode] = useState<'login' | 'register'>(initialMode);
+  const [step, setStep] = useState<'phone' | 'otp' | 'profile'>('phone');
+  const [phone, setPhone] = useState('');
+  const [otp, setOtp] = useState('');
+  const [verificationId, setVerificationId] = useState<any>(null);
+  const [profile, setProfile] = useState({ name: '', state: '', district: '', mandal: '', crop: '' });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setMode(initialMode);
     setStep('phone');
-    setError('');
-    setLoading(false);
-    setPhoneNumber('');
-    setOtp('');
-  }, [isOpen, initialMode]);
+    setError(null);
+  }, [initialMode, isOpen]);
+
+  const setupRecaptcha = () => {
+    if (!(window as any).recaptchaVerifier) {
+      (window as any).recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+        size: 'invisible'
+      });
+    }
+  };
 
   const handleSendOtp = async () => {
+    setError(null);
     setLoading(true);
-    setError('');
     try {
-      let formattedPhone = phoneNumber.trim();
-      if (!formattedPhone.startsWith('+')) {
-        formattedPhone = `+91${formattedPhone}`;
-      }
-      const appVerifier = recaptchaVerifierRef.current;
-      const result = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
-      setConfirmationResult(result);
+      setupRecaptcha();
+      const phoneNumber = `+91${phone}`;
+      const confirmation = await signInWithPhoneNumber(auth, phoneNumber, (window as any).recaptchaVerifier);
+      setVerificationId(confirmation);
       setStep('otp');
     } catch (err: any) {
-      setError(t.auth.error || 'Failed to send OTP');
+      setError(t.auth.error);
     }
     setLoading(false);
   };
 
   const handleVerifyOtp = async () => {
+    setError(null);
     setLoading(true);
-    setError('');
     try {
-      const result = await confirmationResult.confirm(otp);
-      const uid = result.user.uid;
-      const userDoc = await getDoc(doc(db, 'users', uid));
-      
+      const result = await verificationId.confirm(otp);
+      const user = result.user;
+      const userDoc = await getDoc(doc(db, 'users', user.uid));
+
       if (mode === 'login') {
         if (userDoc.exists()) {
           onAuthSuccess(userDoc.data());
-          onClose();
         } else {
-          await signOut(auth);
           setError(t.auth.userNotFound);
+          await signOut(auth);
         }
       } else {
         if (userDoc.exists()) {
-          await signOut(auth);
           setError(t.auth.userExists);
+          await signOut(auth);
         } else {
           setStep('profile');
         }
       }
     } catch (err: any) {
-      setError(t.auth.error || 'Verification failed');
+      setError(t.auth.error);
     }
     setLoading(false);
   };
 
-  const handleProfileSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmitProfile = async () => {
+    setError(null);
     setLoading(true);
     try {
-      const uid = auth.currentUser?.uid;
-      if (!uid) throw new Error("Session expired");
-
-      const finalProfile = {
-        uid,
-        name: profile.name,
-        state: profile.state === 'Other' ? profile.otherState : profile.state,
-        district: (profile.state !== 'Other' && profile.district === 'Other') ? profile.otherDistrict : profile.district,
-        mandal: (profile.district !== 'Other' && profile.mandal === 'Other') ? profile.otherMandal : profile.mandal,
-        crop: profile.crop === 'Other' ? profile.otherCrop : profile.crop,
-        phoneNumber: auth.currentUser?.phoneNumber,
-        createdAt: new Date().toISOString()
-      };
-
-      await setDoc(doc(db, 'users', uid), finalProfile);
-      onAuthSuccess(finalProfile);
-      onClose();
+      const user = auth.currentUser;
+      if (user) {
+        const userData = {
+          ...profile,
+          uid: user.uid,
+          phone: user.phoneNumber,
+          createdAt: new Date().toISOString()
+        };
+        await setDoc(doc(db, 'users', user.uid), userData);
+        onAuthSuccess(userData);
+      }
     } catch (err: any) {
-      setError(t.auth.error || 'Profile save failed');
+      setError(t.auth.error);
     }
     setLoading(false);
   };
@@ -255,196 +477,78 @@ const AuthModal = ({ isOpen, onClose, lang, t, onAuthSuccess, initialMode = 'log
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fadeIn">
-      <div className="bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
-        <div className="p-8 bg-green-50 border-b border-green-100 flex justify-between items-center shrink-0">
-          <div>
-            <h2 className="text-2xl font-black text-green-900">{mode === 'login' ? t.auth.titleLogin : t.auth.titleRegister}</h2>
-            <p className="text-xs text-green-700/60 uppercase tracking-widest font-bold">{t.auth.subtitle}</p>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={onClose}></div>
+      <div id="recaptcha-container"></div>
+      <div className="relative bg-white w-full max-w-lg rounded-[3rem] shadow-2xl overflow-hidden animate-fadeInUp">
+        <div className="p-8 md:p-12">
+          <button onClick={onClose} className="absolute top-8 right-8 text-slate-400 hover:text-slate-900"><X /></button>
+          <div className="mb-10 text-center">
+            <h2 className="text-3xl font-serif text-slate-900 mb-2">{step === 'profile' ? t.auth.profile : (mode === 'login' ? t.auth.titleLogin : t.auth.titleRegister)}</h2>
+            <p className="text-slate-500 font-light">{t.auth.subtitle}</p>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-green-100 rounded-full text-green-800 transition-colors">
-            <X className="w-6 h-6" />
-          </button>
-        </div>
-        
-        <div className="p-8 overflow-y-auto">
-          {error && (
-            <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-2xl text-xs font-black border border-red-100 flex items-center gap-3">
-              <div className="bg-red-500 text-white p-1 rounded-full shrink-0"><X className="w-3 h-3" /></div>
-              {error}
-            </div>
-          )}
-          
+          {error && <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-2xl text-sm font-bold flex items-center gap-2 animate-shake"><Info className="w-4 h-4" /> {error}</div>}
           {step === 'phone' && (
             <div className="space-y-6">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">{t.auth.phone}</label>
-                <div className="relative group">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
-                    <Phone className="w-5 h-5 text-slate-300 group-focus-within:text-green-600 transition-colors" />
-                    <span className="text-slate-400 font-bold border-r border-slate-200 pr-2">+91</span>
-                  </div>
-                  <input 
-                    type="tel" 
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
-                    placeholder={t.auth.phonePlaceholder}
-                    className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl py-4 pl-24 pr-4 focus:border-green-500 focus:bg-white transition-all outline-none font-bold"
-                  />
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">{t.auth.phone}</label>
+                <div className="flex gap-3">
+                  <div className="bg-slate-50 border border-slate-100 rounded-2xl px-4 py-4 font-bold text-slate-400">+91</div>
+                  <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder={t.auth.phonePlaceholder} className="flex-1 bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 font-bold focus:border-green-500 outline-none" />
                 </div>
               </div>
-              <button 
-                onClick={handleSendOtp}
-                disabled={loading || phoneNumber.length < 10}
-                className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white py-5 rounded-2xl font-black text-lg transition-all shadow-xl shadow-green-200 flex justify-center items-center gap-2"
-              >
-                {loading ? 'Sending...' : <>{t.auth.sendOtp} <ChevronRight className="w-5 h-5" /></>}
-              </button>
-              <div className="text-center pt-2">
-                <button 
-                  onClick={() => setMode(mode === 'login' ? 'register' : 'login')}
-                  className="text-xs font-black text-green-700 hover:text-green-900 transition-colors uppercase tracking-widest"
-                >
-                  {mode === 'login' ? t.auth.switchRegister : t.auth.switchLogin}
-                </button>
-              </div>
+              <button onClick={handleSendOtp} disabled={loading || phone.length !== 10} className="w-full bg-green-600 text-white py-5 rounded-2xl font-black text-lg shadow-xl shadow-green-200 disabled:opacity-50 transition-all">{loading ? '...' : t.auth.sendOtp}</button>
+              <button onClick={() => setMode(mode === 'login' ? 'register' : 'login')} className="w-full text-slate-400 font-bold text-sm hover:text-green-600 transition-colors">{mode === 'login' ? t.auth.switchRegister : t.auth.switchLogin}</button>
             </div>
           )}
-
           {step === 'otp' && (
             <div className="space-y-6">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">{t.auth.otp}</label>
-                <input 
-                  type="text" 
-                  maxLength={6}
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value.replace(/\D/g,''))}
-                  placeholder="000000"
-                  className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl py-4 px-4 text-center text-3xl tracking-[1em] focus:border-green-500 focus:bg-white transition-all outline-none font-black"
-                />
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">{t.auth.otp}</label>
+                <input type="text" maxLength={6} value={otp} onChange={(e) => setOtp(e.target.value)} className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 font-bold text-center text-3xl tracking-[0.5em] focus:border-green-500 outline-none" />
               </div>
-              <button 
-                onClick={handleVerifyOtp}
-                disabled={loading || otp.length < 6}
-                className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white py-5 rounded-2xl font-black text-lg transition-all shadow-xl shadow-green-200"
-              >
-                {loading ? 'Verifying...' : t.auth.verify}
-              </button>
-              <button onClick={() => setStep('phone')} className="w-full text-slate-400 font-bold hover:text-green-600 transition-colors text-sm uppercase tracking-widest">{t.auth.back}</button>
+              <button onClick={handleVerifyOtp} disabled={loading || otp.length !== 6} className="w-full bg-green-600 text-white py-5 rounded-2xl font-black text-lg shadow-xl shadow-green-200 disabled:opacity-50 transition-all">{loading ? '...' : t.auth.verify}</button>
+              <button onClick={() => setStep('phone')} className="w-full text-slate-400 font-bold text-sm">{t.auth.back}</button>
             </div>
           )}
-
           {step === 'profile' && (
-            <form onSubmit={handleProfileSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fadeIn">
-              <div className="md:col-span-2 flex items-center gap-3 mb-4 p-4 bg-green-50 rounded-2xl">
-                <div className="bg-green-500 text-white p-2 rounded-xl"><CheckCircle2 className="w-5 h-5" /></div>
+            <div className="space-y-5 max-h-[60vh] overflow-y-auto px-1">
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">{t.auth.name}</label>
+                <input type="text" value={profile.name} onChange={(e) => setProfile({...profile, name: e.target.value})} className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 font-bold" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm font-black text-green-900">Phone Verified</p>
-                  <p className="text-[10px] text-green-700/60 uppercase font-bold tracking-wider">Fill your details to continue</p>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">{t.auth.state}</label>
+                  <select value={profile.state} onChange={(e) => setProfile({...profile, state: e.target.value, district: '', mandal: ''})} className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-4 py-4 font-bold">
+                    <option value="">Select</option>
+                    {Object.keys(locationData).map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">{t.auth.district}</label>
+                  <select value={profile.district} disabled={!profile.state} onChange={(e) => setProfile({...profile, district: e.target.value, mandal: ''})} className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-4 py-4 font-bold disabled:opacity-50">
+                    <option value="">Select</option>
+                    {profile.state && Object.keys(locationData[profile.state]?.districts || {}).map(d => <option key={d} value={d}>{d}</option>)}
+                  </select>
                 </div>
               </div>
-              
-              <div className="md:col-span-2 space-y-1">
-                <label className="text-[10px] font-black uppercase text-slate-400 ml-2">{t.auth.name}</label>
-                <div className="relative">
-                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <input required type="text" value={profile.name} onChange={(e) => setProfile({...profile, name: e.target.value})} className="w-full bg-slate-50 rounded-xl py-3.5 pl-10 pr-4 border border-slate-200 focus:ring-2 focus:ring-green-500/20 outline-none text-sm font-bold" />
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase text-slate-400 ml-2">{t.auth.state}</label>
-                <select 
-                  required 
-                  value={profile.state} 
-                  onChange={(e) => setProfile({...profile, state: e.target.value, district: '', mandal: ''})}
-                  className="w-full bg-slate-50 rounded-xl py-3.5 px-4 border border-slate-200 focus:ring-2 focus:ring-green-500/20 outline-none text-sm font-bold appearance-none cursor-pointer"
-                >
-                  <option value="">Select State</option>
-                  {Object.keys(locationData).map(s => <option key={s} value={s}>{s}</option>)}
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">{t.auth.mandal}</label>
+                <select value={profile.mandal} disabled={!profile.district} onChange={(e) => setProfile({...profile, mandal: e.target.value})} className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-4 py-4 font-bold disabled:opacity-50">
+                  <option value="">Select</option>
+                  {profile.district && locationData[profile.state].districts[profile.district].map((m: string) => <option key={m} value={m}>{m}</option>)}
                 </select>
               </div>
-
-              {profile.state === 'Other' && (
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black uppercase text-slate-400 ml-2">{t.auth.otherLocation} (State)</label>
-                  <input required type="text" value={profile.otherState} onChange={(e) => setProfile({...profile, otherState: e.target.value})} className="w-full bg-slate-50 rounded-xl py-3.5 px-4 border border-slate-200 focus:ring-2 focus:ring-green-500/20 outline-none text-sm font-bold" />
-                </div>
-              )}
-
-              {profile.state && profile.state !== 'Other' && (
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black uppercase text-slate-400 ml-2">{t.auth.district}</label>
-                  <select 
-                    required 
-                    value={profile.district} 
-                    onChange={(e) => setProfile({...profile, district: e.target.value, mandal: ''})}
-                    className="w-full bg-slate-50 rounded-xl py-3.5 px-4 border border-slate-200 focus:ring-2 focus:ring-green-500/20 outline-none text-sm font-bold appearance-none cursor-pointer"
-                  >
-                    <option value="">Select District</option>
-                    {Object.keys(locationData[profile.state].districts).map(d => <option key={d} value={d}>{d}</option>)}
-                  </select>
-                </div>
-              )}
-
-              {(profile.state !== 'Other' && profile.district === 'Other') && (
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black uppercase text-slate-400 ml-2">{t.auth.otherLocation} (District)</label>
-                  <input required type="text" value={profile.otherDistrict} onChange={(e) => setProfile({...profile, otherDistrict: e.target.value})} className="w-full bg-slate-50 rounded-xl py-3.5 px-4 border border-slate-200 focus:ring-2 focus:ring-green-500/20 outline-none text-sm font-bold" />
-                </div>
-              )}
-
-              {profile.district && profile.district !== 'Other' && (
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black uppercase text-slate-400 ml-2">{t.auth.mandal}</label>
-                  <select 
-                    required 
-                    value={profile.mandal} 
-                    onChange={(e) => setProfile({...profile, mandal: e.target.value})}
-                    className="w-full bg-slate-50 rounded-xl py-3.5 px-4 border border-slate-200 focus:ring-2 focus:ring-green-500/20 outline-none text-sm font-bold appearance-none cursor-pointer"
-                  >
-                    <option value="">Select Mandal</option>
-                    {locationData[profile.state].districts[profile.district].map((m: string) => <option key={m} value={m}>{m}</option>)}
-                  </select>
-                </div>
-              )}
-
-              {(profile.district !== 'Other' && profile.mandal === 'Other') && (
-                <div className="md:col-span-2 space-y-1">
-                  <label className="text-[10px] font-black uppercase text-slate-400 ml-2">{t.auth.otherLocation} (Mandal)</label>
-                  <input required type="text" value={profile.otherMandal} onChange={(e) => setProfile({...profile, otherMandal: e.target.value})} className="w-full bg-slate-50 rounded-xl py-3.5 px-4 border border-slate-200 focus:ring-2 focus:ring-green-500/20 outline-none text-sm font-bold" />
-                </div>
-              )}
-
-              <div className="md:col-span-2 space-y-1">
-                <label className="text-[10px] font-black uppercase text-slate-400 ml-2">{t.auth.crop}</label>
-                <select 
-                  required 
-                  value={profile.crop} 
-                  onChange={(e) => setProfile({...profile, crop: e.target.value})}
-                  className="w-full bg-slate-50 rounded-xl py-3.5 px-4 border border-slate-200 focus:ring-2 focus:ring-green-500/20 outline-none text-sm font-bold appearance-none cursor-pointer"
-                >
-                  <option value="">Select Primary Crop</option>
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">{t.auth.crop}</label>
+                <select value={profile.crop} onChange={(e) => setProfile({...profile, crop: e.target.value})} className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-4 py-4 font-bold">
+                  <option value="">Select Crop</option>
                   {cropOptions.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
               </div>
-
-              {profile.crop === 'Other' && (
-                <div className="md:col-span-2 space-y-1">
-                  <label className="text-[10px] font-black uppercase text-slate-400 ml-2">{t.auth.otherCrop}</label>
-                  <input required type="text" value={profile.otherCrop} onChange={(e) => setProfile({...profile, otherCrop: e.target.value})} className="w-full bg-slate-50 rounded-xl py-3.5 px-4 border border-slate-200 focus:ring-2 focus:ring-green-500/20 outline-none text-sm font-bold" />
-                </div>
-              )}
-
-              <button 
-                type="submit" 
-                disabled={loading}
-                className="md:col-span-2 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white py-4 rounded-2xl font-black text-lg mt-4 shadow-xl shadow-green-200 transition-all flex justify-center items-center gap-2"
-              >
-                {loading ? 'Processing...' : t.auth.submit}
-              </button>
-            </form>
+              <button onClick={handleSubmitProfile} disabled={loading || !profile.name || !profile.crop || !profile.mandal} className="w-full bg-green-600 text-white py-5 rounded-2xl font-black text-lg shadow-xl shadow-green-200 transition-all mt-4">{loading ? '...' : t.auth.submit}</button>
+            </div>
           )}
         </div>
       </div>
@@ -452,214 +556,16 @@ const AuthModal = ({ isOpen, onClose, lang, t, onAuthSuccess, initialMode = 'log
   );
 };
 
-// --- Scroll Reveal Hook ---
-const useScrollReveal = () => {
-  useEffect(() => {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) entry.target.classList.add('visible');
-      });
-    }, { threshold: 0.1 });
-    const targets = document.querySelectorAll('.fade-in');
-    targets.forEach((target) => observer.observe(target));
-    return () => observer.disconnect();
-  }, []);
-};
+// --- Landing Page Layout ---
 
-// --- Landing Sections ---
-
-const SectionHero = ({ t }: any) => (
-  <section id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden pt-24 md:pt-32">
-    <div className="absolute inset-0 z-0 scale-105 animate-[slowZoom_20s_infinite_alternate]">
-      <img src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=2400" alt="Field" className="w-full h-full object-cover" />
-      <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/50 to-transparent"></div>
-    </div>
-    <div className="relative z-10 max-w-[1600px] mx-auto px-6 md:px-12 text-white w-full">
-      <div className="max-w-4xl pt-8 lg:pt-0">
-        <div className="inline-flex items-center gap-3 bg-green-500/20 backdrop-blur-md border border-green-400/30 rounded-full px-4 py-1.5 mb-8 animate-[fadeInLeft_1s_ease-out]">
-          <div className="bg-green-400 w-1.5 h-1.5 rounded-full animate-pulse"></div>
-          <span className="text-[10px] md:text-xs uppercase tracking-[0.2em] font-black text-green-300">{(t.hero?.badge || 'Portal')}</span>
-        </div>
-        <h1 className="text-4xl md:text-7xl lg:text-9xl font-serif leading-[1.1] mb-8 animate-[fadeInUp_1s_ease-out] drop-shadow-2xl">
-          {(t.hero?.title || 'Kisan').split(' ')[0]} <br /><span className="text-green-400">{(t.hero?.title || 'Portal').split(' ').slice(1).join(' ')}</span>
-        </h1>
-        <p className="text-base md:text-xl lg:text-2xl text-slate-200 mb-10 max-w-2xl leading-relaxed font-light opacity-90 drop-shadow-lg">{(t.hero?.desc || '')}</p>
-        <div className="flex flex-col sm:flex-row gap-4 md:gap-6">
-          <button className="bg-green-600 hover:bg-green-700 text-white px-8 md:px-10 py-4 md:py-5 rounded-2xl font-black text-base md:text-lg flex items-center justify-center gap-3 group transition-all shadow-2xl shadow-green-900/40 hover:-translate-y-1">
-            {(t.hero?.join || 'Join')} <ChevronRight className="w-5 h-5 md:w-6 md:h-6 group-hover:translate-x-1 transition-transform" />
-          </button>
-          <button className="bg-white/10 backdrop-blur-xl hover:bg-white/20 border border-white/30 text-white px-8 md:px-10 py-4 md:py-5 rounded-2xl font-black text-base md:text-lg shadow-2xl hover:-translate-y-1">{(t.hero?.explore || 'Explore')}</button>
-        </div>
-      </div>
-    </div>
-  </section>
+const LandingView = ({ t }: any) => (
+  <>
+    <SectionHero t={t} />
+    <SectionImportance t={t} />
+    <SectionTech t={t} />
+    <SectionFeatures t={t} />
+  </>
 );
-
-const SectionImportance = ({ t }: any) => (
-  <section id="backbone" className="py-24 md:py-32 bg-white">
-    <div className="max-w-[1600px] mx-auto px-6 md:px-12 grid lg:grid-cols-2 gap-16 md:gap-24 items-center">
-      <div className="fade-in relative">
-        <div className="absolute -top-12 -left-12 w-48 h-48 bg-green-50 rounded-full blur-3xl opacity-60"></div>
-        <div className="relative z-10 rounded-[2.5rem] md:rounded-[3rem] overflow-hidden shadow-2xl">
-          <img src="https://images.unsplash.com/photo-1595841696677-6489ff3f8cd1?auto=format&fit=crop&q=80&w=1200" alt="Farmer" className="w-full aspect-[4/5] object-cover hover:scale-105 transition-transform" />
-        </div>
-        <div className="absolute -bottom-12 -right-12 bg-green-900 text-white p-8 md:p-12 rounded-[2.5rem] shadow-2xl max-w-sm hidden xl:block z-20 border-8 border-white">
-          <p className="italic text-lg md:text-xl mb-6 leading-relaxed">"{t.importance?.quote || ''}"</p>
-          <div className="h-px w-12 bg-green-400 mb-4"></div>
-          <span className="font-black text-green-400 uppercase tracking-widest text-sm">— KisanPortal Insights</span>
-        </div>
-      </div>
-      <div className="fade-in">
-        <span className="text-green-600 font-black tracking-[0.3em] uppercase text-xs md:text-sm mb-6 block">{t.importance?.badge || ''}</span>
-        <h2 className="text-4xl md:text-5xl lg:text-7xl font-serif text-slate-900 mb-8 leading-tight">{t.importance?.title || ''}</h2>
-        <p className="text-slate-600 text-lg md:text-xl mb-12 leading-relaxed font-light">{t.importance?.desc || ''}</p>
-        <div className="grid sm:grid-cols-2 gap-6 md:gap-8">
-          {[ShieldCheck, Users, TrendingUp, Sprout].map((Icon, idx) => (
-            <div key={idx} className="flex flex-col gap-4 p-5 md:p-6 rounded-3xl hover:bg-slate-50 border border-transparent hover:border-slate-100 group transition-all">
-              <div className="w-12 h-12 md:w-14 md:h-14 bg-green-100 rounded-2xl flex items-center justify-center text-green-600 group-hover:bg-green-600 group-hover:text-white transition-all shadow-sm"><Icon className="w-6 h-6 md:w-7 md:h-7" /></div>
-              <h3 className="text-base md:text-lg font-black text-slate-900">Resource {idx + 1}</h3>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  </section>
-);
-
-const SectionTech = ({ t }: any) => (
-  <section id="tech" className="py-24 md:py-32 bg-slate-50 overflow-hidden">
-    <div className="max-w-[1600px] mx-auto px-6 md:px-12">
-      <div className="flex flex-col lg:flex-row justify-between items-end mb-16 md:mb-20 gap-8 md:gap-12 fade-in">
-        <div className="max-w-2xl">
-          <span className="text-green-600 font-black tracking-[0.3em] uppercase text-xs md:text-sm mb-6 block">{t.tech?.badge || ''}</span>
-          <h2 className="text-4xl md:text-5xl lg:text-7xl font-serif leading-tight">{t.tech?.title || ''} <span className="text-green-600 italic">{t.tech?.subtitle || ''}</span></h2>
-        </div>
-        <p className="text-slate-500 text-lg md:text-xl max-w-md lg:text-right font-light leading-relaxed">{t.tech?.desc || ''}</p>
-      </div>
-      <div className="grid md:grid-cols-3 gap-8 md:gap-10">
-        {[Tractor, Droplets, Microscope].map((Icon, idx) => (
-          <div key={idx} className="fade-in group bg-white rounded-[2.5rem] md:rounded-[3rem] overflow-hidden shadow-sm hover:shadow-2xl transition-all border border-slate-200/50 p-8 md:p-10">
-            <div className="w-14 h-14 md:w-16 md:h-16 bg-green-100 rounded-2xl flex items-center justify-center text-green-700 mb-8 group-hover:bg-green-600 group-hover:text-white transition-all"><Icon className="w-7 h-7 md:w-8 md:h-8" /></div>
-            <h3 className="text-xl md:text-2xl font-black mb-4">Innovation {idx + 1}</h3>
-            <p className="text-slate-500 leading-relaxed text-base md:text-lg font-light">Advanced digital infrastructure for modern farming needs.</p>
-          </div>
-        ))}
-      </div>
-    </div>
-  </section>
-);
-
-const SectionFeatures = ({ t }: any) => (
-  <section id="features" className="py-24 md:py-32 bg-green-950 text-white relative overflow-hidden">
-    <div className="max-w-[1600px] mx-auto px-6 md:px-12 relative z-10">
-      <div className="text-center max-w-4xl mx-auto mb-16 md:mb-24 fade-in">
-        <h2 className="text-4xl md:text-5xl lg:text-7xl font-serif mb-8 leading-tight">{t.features?.title || 'Features'}</h2>
-        <div className="h-1 w-24 md:w-32 bg-green-500 mx-auto rounded-full"></div>
-      </div>
-      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-10">
-        {[{icon: CloudSun, key: 'weather'}, {icon: TrendingUp, key: 'market'}, {icon: Users, key: 'coop'}, {icon: ShieldCheck, key: 'insurance'}].map((item, idx) => (
-          <div key={idx} className="fade-in border border-white/5 bg-white/[0.03] hover:bg-white/[0.08] backdrop-blur-md p-8 md:p-10 rounded-[2.5rem] transition-all group hover:-translate-y-2">
-            <div className="w-14 h-14 md:w-16 md:h-16 bg-green-600/20 rounded-2xl flex items-center justify-center text-green-400 mb-8 group-hover:scale-110 group-hover:bg-green-500 transition-all shadow-lg"><item.icon className="w-8 h-8 md:w-9 md:h-9" /></div>
-            <h3 className="text-xl md:text-2xl font-black mb-4">{t.features?.[item.key] || item.key}</h3>
-          </div>
-        ))}
-      </div>
-    </div>
-  </section>
-);
-
-const Navbar = ({ isLoggedIn, userProfile, onOpenAuth, onLogout, lang, setLang, t }: any) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-  const [isLangOpen, setIsLangOpen] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const navItems = [
-    { key: 'home', icon: Leaf },
-    { key: 'cropDetails', icon: Wheat },
-    { key: 'weather', icon: CloudSun },
-    { key: 'dashboard', icon: LayoutDashboard },
-    { key: 'suggestions', icon: Search }
-  ];
-
-  return (
-    <nav className={`fixed w-full z-50 transition-all duration-300 ${scrolled ? 'bg-white/95 backdrop-blur-lg shadow-md py-2 md:py-3' : 'bg-transparent py-4 md:py-6'}`}>
-      <div className="max-w-[1600px] mx-auto px-4 md:px-8 flex justify-between items-center">
-        <div className="flex items-center gap-2 group cursor-pointer shrink-0">
-          <div className="bg-green-600 p-1.5 rounded-lg group-hover:rotate-12 transition-transform shadow-md"><Sprout className="text-white w-5 h-5 md:w-6 md:h-6" /></div>
-          <span className={`text-lg md:text-xl font-black tracking-tighter ${scrolled ? 'text-green-900' : 'text-white'}`}>KisanPortal</span>
-        </div>
-
-        <div className="hidden xl:flex items-center space-x-4 md:space-x-6">
-          <div className="flex items-center space-x-4 mr-2">
-            {navItems.map((item) => (
-              <a 
-                key={item.key} 
-                href={`#${item.key}`} 
-                className={`text-[9px] md:text-[10px] font-black tracking-widest uppercase transition-all hover:text-green-500 flex items-center gap-1.5 whitespace-nowrap ${scrolled ? 'text-slate-600' : 'text-slate-100'}`}
-              >
-                <item.icon className="w-3.5 h-3.5" />
-                {t.nav?.[item.key] || item.key}
-              </a>
-            ))}
-          </div>
-          
-          <div className="h-6 w-px bg-slate-400/20"></div>
-
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <button onClick={() => setIsLangOpen(!isLangOpen)} className={`flex items-center gap-1.5 text-[10px] font-black px-3 py-1.5 rounded-lg border transition-all ${scrolled ? 'border-slate-200 text-slate-700 bg-slate-50' : 'border-white/20 text-white bg-white/10 hover:bg-white/20'}`}>
-                <Globe className="w-3.5 h-3.5" />
-                {languages.find(l => l.code === lang)?.name || 'Lang'}
-              </button>
-              {isLangOpen && (
-                <div className="absolute top-full mt-2 right-0 bg-white shadow-2xl rounded-xl border border-slate-100 overflow-hidden w-28 py-1.5">
-                  {languages.map(l => <button key={l.code} onClick={() => { setLang(l.code); setIsLangOpen(false); }} className={`w-full text-left px-3 py-1.5 text-[10px] hover:bg-green-50 transition-colors ${lang === l.code ? 'text-green-600 font-bold bg-green-50/50' : 'text-slate-600'}`}>{l.name}</button>)}
-                </div>
-              )}
-            </div>
-
-            {!isLoggedIn ? (
-              <div className="flex items-center gap-2">
-                <button onClick={() => onOpenAuth('login')} className="flex items-center gap-2 bg-white/10 border border-white/30 text-white px-5 py-2 rounded-xl text-[10px] font-black hover:bg-white/20 transition-all whitespace-nowrap"><LogIn className="w-3.5 h-3.5" />{t.nav?.login || 'Login'}</button>
-                <button onClick={() => onOpenAuth('register')} className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-xl text-[10px] font-black shadow-lg hover:shadow-green-300/40 transition-all whitespace-nowrap"><UserPlus className="w-3.5 h-3.5" />{t.nav?.register || 'Register'}</button>
-              </div>
-            ) : (
-              <div className="flex items-center gap-3">
-                <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border ${scrolled ? 'bg-green-50 border-green-200 text-green-800' : 'bg-white/10 border-white/20 text-white'}`}>
-                  <div className="w-5 h-5 rounded-full bg-green-600 flex items-center justify-center text-white"><User className="w-3 h-3" /></div>
-                  <span className="text-[9px] font-black uppercase tracking-wider max-w-[80px] truncate">{userProfile?.name || 'Farmer'}</span>
-                </div>
-                <button onClick={onLogout} className={`flex items-center gap-1.5 font-black text-[10px] hover:text-red-600 transition-all ${scrolled ? 'text-slate-500' : 'text-white/70'}`}><LogOut className="w-3.5 h-3.5" />{t.nav?.logout || 'Logout'}</button>
-              </div>
-            )}
-          </div>
-        </div>
-
-        <button className="xl:hidden" onClick={() => setIsOpen(!isOpen)}>{isOpen ? <X className={scrolled ? 'text-slate-900' : 'text-white'} /> : <Menu className={scrolled ? 'text-slate-900' : 'text-white'} />}</button>
-      </div>
-
-      {isOpen && (
-        <div className="xl:hidden bg-white border-b absolute w-full left-0 p-6 space-y-6 shadow-2xl animate-fadeIn overflow-y-auto max-h-[80vh]">
-          {navItems.map((item) => <a key={item.key} href={`#${item.key}`} className="flex items-center gap-3 text-slate-800 font-black text-xs uppercase py-2" onClick={() => setIsOpen(false)}><item.icon className="w-5 h-5" />{t.nav?.[item.key] || item.key}</a>)}
-          {!isLoggedIn ? (
-            <div className="space-y-3">
-              <button onClick={() => {onOpenAuth('login'); setIsOpen(false)}} className="w-full bg-slate-100 text-slate-900 py-4 rounded-2xl font-black text-lg flex items-center justify-center gap-3"><LogIn className="w-6 h-6" /> {t.nav?.login || 'Login'}</button>
-              <button onClick={() => {onOpenAuth('register'); setIsOpen(false)}} className="w-full bg-green-600 text-white py-4 rounded-2xl font-black text-lg flex items-center justify-center gap-3"><UserPlus className="w-6 h-6" /> {t.nav?.register || 'Register'}</button>
-            </div>
-          ) : (
-            <button onClick={() => {onLogout(); setIsOpen(false)}} className="w-full bg-red-50 text-red-600 py-4 rounded-2xl font-black text-lg flex items-center justify-center gap-3"><LogOut className="w-6 h-6" /> {t.nav?.logout || 'Logout'}</button>
-          )}
-        </div>
-      )}
-    </nav>
-  );
-};
 
 // --- App Root ---
 
@@ -669,6 +575,7 @@ const App: React.FC = () => {
   const [authModal, setAuthModal] = useState<{isOpen: boolean, mode: 'login' | 'register'}>({isOpen: false, mode: 'login'});
   const [lang, setLang] = useState<string>('en');
   const [userProfile, setUserProfile] = useState<any>(null);
+  const [currentView, setCurrentView] = useState('home');
 
   const t = translations[lang] || translations.en;
 
@@ -689,6 +596,7 @@ const App: React.FC = () => {
       } else {
         setIsLoggedIn(false);
         setUserProfile(null);
+        setCurrentView('home');
       }
     });
     return () => unsubscribe();
@@ -698,12 +606,23 @@ const App: React.FC = () => {
     setUserProfile(profile);
     setIsLoggedIn(true);
     setAuthModal({ ...authModal, isOpen: false });
+    setCurrentView('dashboard');
   };
 
   const handleLogout = async () => {
     await signOut(auth);
     setIsLoggedIn(false);
     setUserProfile(null);
+    setCurrentView('home');
+  };
+
+  const handleNavClick = (view: string) => {
+    if (view !== 'home' && !isLoggedIn) {
+      setAuthModal({ isOpen: true, mode: 'login' });
+      return;
+    }
+    setCurrentView(view);
+    window.scrollTo(0, 0);
   };
 
   return (
@@ -713,16 +632,19 @@ const App: React.FC = () => {
         userProfile={userProfile}
         onOpenAuth={(mode: 'login' | 'register') => setAuthModal({ isOpen: true, mode })}
         onLogout={handleLogout} 
+        onNavClick={handleNavClick}
+        currentView={currentView}
         lang={lang}
         setLang={setLang}
         t={t}
       />
       
       <main className="w-full flex-1">
-        <SectionHero t={t} />
-        <SectionImportance t={t} />
-        <SectionTech t={t} />
-        <SectionFeatures t={t} />
+        {currentView === 'home' && <LandingView t={t} />}
+        {currentView === 'dashboard' && <DashboardView userProfile={userProfile} t={t} onViewChange={handleNavClick} />}
+        {currentView === 'weather' && <WeatherView t={t} />}
+        {currentView === 'crops' && <CropsView t={t} />}
+        {currentView === 'suggestions' && <SuggestionsView userProfile={userProfile} t={t} />}
       </main>
       
       <footer className="bg-slate-950 pt-24 md:pt-32 pb-12 text-slate-400 text-center shrink-0">
@@ -749,8 +671,8 @@ const App: React.FC = () => {
         onAuthSuccess={handleAuthSuccess}
       />
       
-      {isLoggedIn && (
-        <div className="fixed bottom-10 right-10 bg-white border border-green-100 shadow-2xl p-5 md:p-6 rounded-[2rem] animate-[bounceIn_0.6s_ease-out] z-50 flex items-center gap-4">
+      {isLoggedIn && currentView === 'home' && (
+        <div className="fixed bottom-10 right-10 bg-white border border-green-100 shadow-2xl p-5 md:p-6 rounded-[2rem] animate-[bounceIn_0.6s_ease-out] z-50 flex items-center gap-4 cursor-pointer hover:scale-105 transition-all" onClick={() => setCurrentView('dashboard')}>
           <div className="w-12 h-12 md:w-14 md:h-14 bg-green-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-green-200">
             <User className="w-6 h-6 md:w-7 md:h-7" />
           </div>
@@ -763,5 +685,226 @@ const App: React.FC = () => {
     </div>
   );
 };
+
+// --- Helpers ---
+
+const Calendar = ({ className }: { className?: string }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+  </svg>
+);
+
+// Re-defining Navbar to support onViewClick
+
+const Navbar = ({ isLoggedIn, userProfile, onOpenAuth, onLogout, onNavClick, currentView, lang, setLang, t }: any) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [isLangOpen, setIsLangOpen] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const navItems = [
+    { key: 'home', icon: Leaf },
+    { key: 'crops', icon: Wheat },
+    { key: 'weather', icon: CloudSun },
+    { key: 'dashboard', icon: LayoutDashboard },
+    { key: 'suggestions', icon: Sparkles }
+  ];
+
+  const activeColor = scrolled ? 'text-green-600' : 'text-green-400';
+
+  return (
+    <nav className={`fixed w-full z-50 transition-all duration-300 ${scrolled || currentView !== 'home' ? 'bg-white/95 backdrop-blur-lg shadow-md py-2 md:py-3' : 'bg-transparent py-4 md:py-6'}`}>
+      <div className="max-w-[1600px] mx-auto px-4 md:px-8 flex justify-between items-center">
+        <div className="flex items-center gap-2 group cursor-pointer shrink-0" onClick={() => onNavClick('home')}>
+          <div className="bg-green-600 p-1.5 rounded-lg group-hover:rotate-12 transition-transform shadow-md"><Sprout className="text-white w-5 h-5 md:w-6 md:h-6" /></div>
+          <span className={`text-lg md:text-xl font-black tracking-tighter ${scrolled || currentView !== 'home' ? 'text-green-900' : 'text-white'}`}>KisanPortal</span>
+        </div>
+
+        <div className="hidden xl:flex items-center space-x-4 md:space-x-6">
+          <div className="flex items-center space-x-4 mr-2">
+            {navItems.map((item) => (
+              <button 
+                key={item.key} 
+                onClick={() => onNavClick(item.key)}
+                className={`text-[9px] md:text-[10px] font-black tracking-widest uppercase transition-all hover:text-green-500 flex items-center gap-1.5 whitespace-nowrap ${currentView === item.key ? activeColor : (scrolled || currentView !== 'home' ? 'text-slate-600' : 'text-slate-100')}`}
+              >
+                <item.icon className="w-3.5 h-3.5" />
+                {t.nav?.[item.key] || item.key}
+              </button>
+            ))}
+          </div>
+          
+          <div className="h-6 w-px bg-slate-400/20"></div>
+
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <button onClick={() => setIsLangOpen(!isLangOpen)} className={`flex items-center gap-1.5 text-[10px] font-black px-3 py-1.5 rounded-lg border transition-all ${scrolled || currentView !== 'home' ? 'border-slate-200 text-slate-700 bg-slate-50' : 'border-white/20 text-white bg-white/10 hover:bg-white/20'}`}>
+                <Globe className="w-3.5 h-3.5" />
+                {languages.find(l => l.code === lang)?.name || 'Lang'}
+              </button>
+              {isLangOpen && (
+                <div className="absolute top-full mt-2 right-0 bg-white shadow-2xl rounded-xl border border-slate-100 overflow-hidden w-28 py-1.5">
+                  {languages.map(l => <button key={l.code} onClick={() => { setLang(l.code); setIsLangOpen(false); }} className={`w-full text-left px-3 py-1.5 text-[10px] hover:bg-green-50 transition-colors ${lang === l.code ? 'text-green-600 font-bold bg-green-50/50' : 'text-slate-600'}`}>{l.name}</button>)}
+                </div>
+              )}
+            </div>
+
+            {!isLoggedIn ? (
+              <div className="flex items-center gap-2">
+                <button onClick={() => onOpenAuth('login')} className="flex items-center gap-2 bg-white/10 border border-white/30 text-white px-5 py-2 rounded-xl text-[10px] font-black hover:bg-white/20 transition-all whitespace-nowrap"><LogIn className="w-3.5 h-3.5" />{t.nav?.login || 'Login'}</button>
+                <button onClick={() => onOpenAuth('register')} className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-xl text-[10px] font-black shadow-lg hover:shadow-green-300/40 transition-all whitespace-nowrap"><UserPlus className="w-3.5 h-3.5" />{t.nav?.register || 'Register'}</button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-3">
+                <div onClick={() => onNavClick('dashboard')} className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border cursor-pointer transition-all ${scrolled || currentView !== 'home' ? 'bg-green-50 border-green-200 text-green-800' : 'bg-white/10 border-white/20 text-white hover:bg-white/20'}`}>
+                  <div className="w-5 h-5 rounded-full bg-green-600 flex items-center justify-center text-white"><User className="w-3 h-3" /></div>
+                  <span className="text-[9px] font-black uppercase tracking-wider max-w-[80px] truncate">{userProfile?.name || 'Farmer'}</span>
+                </div>
+                <button onClick={onLogout} className={`flex items-center gap-1.5 font-black text-[10px] hover:text-red-600 transition-all ${scrolled || currentView !== 'home' ? 'text-slate-500' : 'text-white/70'}`}><LogOut className="w-3.5 h-3.5" />{t.nav?.logout || 'Logout'}</button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <button className="xl:hidden" onClick={() => setIsOpen(!isOpen)}>{isOpen ? <X className={scrolled || currentView !== 'home' ? 'text-slate-900' : 'text-white'} /> : <Menu className={scrolled || currentView !== 'home' ? 'text-slate-900' : 'text-white'} />}</button>
+      </div>
+
+      {isOpen && (
+        <div className="xl:hidden bg-white border-b absolute w-full left-0 p-6 space-y-6 shadow-2xl animate-fadeIn overflow-y-auto max-h-[80vh]">
+          {navItems.map((item) => <button key={item.key} onClick={() => { onNavClick(item.key); setIsOpen(false); }} className={`flex items-center gap-3 text-slate-800 font-black text-xs uppercase py-2 w-full text-left ${currentView === item.key ? 'text-green-600' : ''}`}><item.icon className="w-5 h-5" />{t.nav?.[item.key] || item.key}</button>)}
+          {!isLoggedIn ? (
+            <div className="space-y-3">
+              <button onClick={() => {onOpenAuth('login'); setIsOpen(false)}} className="w-full bg-slate-100 text-slate-900 py-4 rounded-2xl font-black text-lg flex items-center justify-center gap-3"><LogIn className="w-6 h-6" /> {t.nav?.login || 'Login'}</button>
+              <button onClick={() => {onOpenAuth('register'); setIsOpen(false)}} className="w-full bg-green-600 text-white py-4 rounded-2xl font-black text-lg flex items-center justify-center gap-3"><UserPlus className="w-6 h-6" /> {t.nav?.register || 'Register'}</button>
+            </div>
+          ) : (
+            <button onClick={() => {onLogout(); setIsOpen(false)}} className="w-full bg-red-50 text-red-600 py-4 rounded-2xl font-black text-lg flex items-center justify-center gap-3"><LogOut className="w-6 h-6" /> {t.nav?.logout || 'Logout'}</button>
+          )}
+        </div>
+      )}
+    </nav>
+  );
+};
+
+// Re-using scroll hook from previous implementation
+const useScrollReveal = () => {
+  useEffect(() => {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) entry.target.classList.add('visible');
+      });
+    }, { threshold: 0.1 });
+    const targets = document.querySelectorAll('.fade-in');
+    targets.forEach((target) => observer.observe(target));
+    return () => observer.disconnect();
+  }, []);
+};
+
+// Re-defining Landing Page sections to match structure
+
+const SectionHero = ({ t }: any) => (
+  <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-24 md:pt-32">
+    <div className="absolute inset-0 z-0 scale-105 animate-[slowZoom_20s_infinite_alternate]">
+      <img src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=2400" alt="Field" className="w-full h-full object-cover" />
+      <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/50 to-transparent"></div>
+    </div>
+    <div className="relative z-10 max-w-[1600px] mx-auto px-6 md:px-12 text-white w-full">
+      <div className="max-w-4xl pt-8 lg:pt-0">
+        <div className="inline-flex items-center gap-3 bg-green-500/20 backdrop-blur-md border border-green-400/30 rounded-full px-4 py-1.5 mb-8 animate-[fadeInLeft_1s_ease-out]">
+          <div className="bg-green-400 w-1.5 h-1.5 rounded-full animate-pulse"></div>
+          <span className="text-[10px] md:text-xs uppercase tracking-[0.2em] font-black text-green-300">{(t.hero?.badge || 'Portal')}</span>
+        </div>
+        <h1 className="text-4xl md:text-7xl lg:text-9xl font-serif leading-[1.1] mb-8 animate-[fadeInUp_1s_ease-out] drop-shadow-2xl">
+          {(t.hero?.title || 'Kisan').split(' ')[0]} <br /><span className="text-green-400">{(t.hero?.title || 'Portal').split(' ').slice(1).join(' ')}</span>
+        </h1>
+        <p className="text-base md:text-xl lg:text-2xl text-slate-200 mb-10 max-w-2xl leading-relaxed font-light opacity-90 drop-shadow-lg">{(t.hero?.desc || '')}</p>
+        <div className="flex flex-col sm:flex-row gap-4 md:gap-6">
+          <button className="bg-green-600 hover:bg-green-700 text-white px-8 md:px-10 py-4 md:py-5 rounded-2xl font-black text-base md:text-lg flex items-center justify-center gap-3 group transition-all shadow-2xl shadow-green-900/40 hover:-translate-y-1">
+            {(t.hero?.join || 'Join')} <ChevronRight className="w-5 h-5 md:w-6 md:h-6 group-hover:translate-x-1 transition-transform" />
+          </button>
+          <button className="bg-white/10 backdrop-blur-xl hover:bg-white/20 border border-white/30 text-white px-8 md:px-10 py-4 md:py-5 rounded-2xl font-black text-base md:text-lg shadow-2xl hover:-translate-y-1">{(t.hero?.explore || 'Explore')}</button>
+        </div>
+      </div>
+    </div>
+  </section>
+);
+
+const SectionImportance = ({ t }: any) => (
+  <section className="py-24 md:py-32 bg-white">
+    <div className="max-w-[1600px] mx-auto px-6 md:px-12 grid lg:grid-cols-2 gap-16 md:gap-24 items-center">
+      <div className="fade-in relative">
+        <div className="absolute -top-12 -left-12 w-48 h-48 bg-green-50 rounded-full blur-3xl opacity-60"></div>
+        <div className="relative z-10 rounded-[2.5rem] md:rounded-[3rem] overflow-hidden shadow-2xl">
+          <img src="https://images.unsplash.com/photo-1595841696677-6489ff3f8cd1?auto=format&fit=crop&q=80&w=1200" alt="Farmer" className="w-full aspect-[4/5] object-cover hover:scale-105 transition-transform" />
+        </div>
+        <div className="absolute -bottom-12 -right-12 bg-green-900 text-white p-8 md:p-12 rounded-[2.5rem] shadow-2xl max-w-sm hidden xl:block z-20 border-8 border-white">
+          <p className="italic text-lg md:text-xl mb-6 leading-relaxed">"{t.importance?.quote || ''}"</p>
+          <div className="h-px w-12 bg-green-400 mb-4"></div>
+          <span className="font-black text-green-400 uppercase tracking-widest text-sm">— KisanPortal Insights</span>
+        </div>
+      </div>
+      <div className="fade-in">
+        <span className="text-green-600 font-black tracking-[0.3em] uppercase text-xs md:text-sm mb-6 block">{t.importance?.badge || ''}</span>
+        <h2 className="text-4xl md:text-5xl lg:text-7xl font-serif text-slate-900 mb-8 leading-tight">{t.importance?.title || ''}</h2>
+        <p className="text-slate-600 text-lg md:text-xl mb-12 leading-relaxed font-light">{t.importance?.desc || ''}</p>
+        <div className="grid sm:grid-cols-2 gap-6 md:gap-8">
+          {[ShieldCheck, Users, TrendingUp, Sprout].map((Icon, idx) => (
+            <div key={idx} className="flex flex-col gap-4 p-5 md:p-6 rounded-3xl hover:bg-slate-50 border border-transparent hover:border-slate-100 group transition-all">
+              <div className="w-12 h-12 md:w-14 md:h-14 bg-green-100 rounded-2xl flex items-center justify-center text-green-600 group-hover:bg-green-600 group-hover:text-white transition-all shadow-sm"><Icon className="w-6 h-6 md:w-7 md:h-7" /></div>
+              <h3 className="text-base md:text-lg font-black text-slate-900">Focus {idx + 1}</h3>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </section>
+);
+
+const SectionTech = ({ t }: any) => (
+  <section className="py-24 md:py-32 bg-slate-50 overflow-hidden">
+    <div className="max-w-[1600px] mx-auto px-6 md:px-12">
+      <div className="flex flex-col lg:flex-row justify-between items-end mb-16 md:mb-20 gap-8 md:gap-12 fade-in">
+        <div className="max-w-2xl">
+          <span className="text-green-600 font-black tracking-[0.3em] uppercase text-xs md:text-sm mb-6 block">{t.tech?.badge || ''}</span>
+          <h2 className="text-4xl md:text-5xl lg:text-7xl font-serif leading-tight">{t.tech?.title || ''} <span className="text-green-600 italic">{t.tech?.subtitle || ''}</span></h2>
+        </div>
+        <p className="text-slate-500 text-lg md:text-xl max-w-md lg:text-right font-light leading-relaxed">{t.tech?.desc || ''}</p>
+      </div>
+      <div className="grid md:grid-cols-3 gap-8 md:gap-10">
+        {[Tractor, Droplets, Microscope].map((Icon, idx) => (
+          <div key={idx} className="fade-in group bg-white rounded-[2.5rem] md:rounded-[3rem] overflow-hidden shadow-sm hover:shadow-2xl transition-all border border-slate-200/50 p-8 md:p-10">
+            <div className="w-14 h-14 md:w-16 md:h-16 bg-green-100 rounded-2xl flex items-center justify-center text-green-700 mb-8 group-hover:bg-green-600 group-hover:text-white transition-all"><Icon className="w-7 h-7 md:w-8 md:h-8" /></div>
+            <h3 className="text-xl md:text-2xl font-black mb-4">Innovation {idx + 1}</h3>
+            <p className="text-slate-500 leading-relaxed text-base md:text-lg font-light">Advanced digital infrastructure for modern farming needs.</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+);
+
+const SectionFeatures = ({ t }: any) => (
+  <section className="py-24 md:py-32 bg-green-950 text-white relative overflow-hidden">
+    <div className="max-w-[1600px] mx-auto px-6 md:px-12 relative z-10">
+      <div className="text-center max-w-4xl mx-auto mb-16 md:mb-24 fade-in">
+        <h2 className="text-4xl md:text-5xl lg:text-7xl font-serif mb-8 leading-tight">{t.features?.title || 'Features'}</h2>
+        <div className="h-1 w-24 md:w-32 bg-green-500 mx-auto rounded-full"></div>
+      </div>
+      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-10">
+        {[{icon: CloudSun, key: 'weather'}, {icon: TrendingUp, key: 'market'}, {icon: Users, key: 'coop'}, {icon: ShieldCheck, key: 'insurance'}].map((item, idx) => (
+          <div key={idx} className="fade-in border border-white/5 bg-white/[0.03] hover:bg-white/[0.08] backdrop-blur-md p-8 md:p-10 rounded-[2.5rem] transition-all group hover:-translate-y-2">
+            <div className="w-14 h-14 md:w-16 md:h-16 bg-green-600/20 rounded-2xl flex items-center justify-center text-green-400 mb-8 group-hover:scale-110 group-hover:bg-green-500 transition-all shadow-lg"><item.icon className="w-8 h-8 md:w-9 md:h-9" /></div>
+            <h3 className="text-xl md:text-2xl font-black mb-4">{t.features?.[item.key] || item.key}</h3>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+);
 
 export default App;
